@@ -11,11 +11,12 @@ CREATE TABLE Users (
 );
 
 -- WEATHER TABLE
+
 CREATE TABLE Weather (
     weather_id NUMBER PRIMARY KEY,
-    weather_date DATE NOT NULL,
+    weather_date DATE,
     temperature NUMBER,
-    condition_type VARCHAR2(20),
+    condition_type VARCHAR2(50),
     humidity NUMBER
 );
 
@@ -71,3 +72,4 @@ CREATE TABLE Recommendations (
     recommendation_date DATE,
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
+
