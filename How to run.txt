@@ -1,9 +1,46 @@
-INSERT INTO USERS VALUES (1, 'Dev',    21, 'Male',   172, 68, 'Beginner',     SYSDATE - 60, 'Ahmedabad');
-INSERT INTO USERS VALUES (2, 'Nirmam', 22, 'Male',   175, 72, 'Intermediate', SYSDATE - 45, 'Mumbai');
-INSERT INTO USERS VALUES (3, 'Parin',  23, 'Male',   178, 80, 'Advanced',     SYSDATE - 30, 'Delhi');
-INSERT INTO USERS VALUES (4, 'Utsav',  20, 'Male',   170, 65, 'Beginner',     SYSDATE - 20, 'Surat');
+step 0: remove all entries:
+
+DELETE FROM RECOMMENDATIONS;
+DELETE FROM GOALS;
+DELETE FROM SLEEP_LOG;
+DELETE FROM MEALS;
+DELETE FROM WORKOUTS;
+DELETE FROM WEATHER;
+DELETE FROM USERS;
+
+DROP SEQUENCE weather_seq;
+DROP SEQUENCE rec_seq;
+
+CREATE SEQUENCE weather_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE rec_seq     START WITH 1 INCREMENT BY 1;
+
 COMMIT;
 
+
+step 1: insert users
+
+DELETE FROM RECOMMENDATIONS;
+DELETE FROM GOALS;
+DELETE FROM SLEEP_LOG;
+DELETE FROM MEALS;
+DELETE FROM WORKOUTS;
+DELETE FROM WEATHER;
+DELETE FROM USERS;
+
+DROP SEQUENCE weather_seq;
+DROP SEQUENCE rec_seq;
+
+CREATE SEQUENCE weather_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE rec_seq     START WITH 1 INCREMENT BY 1;
+
+COMMIT;
+
+
+step 2:
+run python script
+python Weather_api.py
+
+step 3: insert other tables
 
 -- DEV (user 1) - Beginner, Weight Loss goal
 INSERT INTO WORKOUTS VALUES (1,  1, 'Running',         30, 220, TRUNC(SYSDATE - 6));
@@ -139,3 +176,14 @@ INSERT INTO GOALS VALUES (2, 2, 'Muscle Gain',        3,  TRUNC(SYSDATE - 45), T
 INSERT INTO GOALS VALUES (3, 3, 'Run Distance',       20, TRUNC(SYSDATE - 30), TRUNC(SYSDATE + 60));
 INSERT INTO GOALS VALUES (4, 4, 'Weight Maintenance', 0,  TRUNC(SYSDATE - 20), TRUNC(SYSDATE + 40));
 COMMIT;
+
+
+
+
+step 4: run cursor.sql
+
+step 5: check recom table
+
+step 6:run qerie.sql
+
+step 7: run views.sql
