@@ -2,14 +2,14 @@ import requests
 import oracledb
 import config
 
-# Thick mode
-oracledb.init_oracle_client(lib_dir=r"C:\Users\Admin\Downloads\instantclient-basic-windows.x64-23.26.1.0.0\instantclient_23_0")
+# Use thin mode - no need for Oracle Client library
+# oracledb.init_oracle_client(lib_dir=r"C:\Users\Admin\Downloads\instantclient-basic-windows.x64-23.26.1.0.0\instantclient_23_0")
 
 API_KEY = config.API_KEY
 
 # Connect as SYSTEM to XEPDB1
 connection = oracledb.connect(
-    user="SYSTEM",
+    user=config.DB_USER,
     password=config.DB_PASSWORD,
     dsn=config.DB_DSN
 )

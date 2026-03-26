@@ -1,949 +1,690 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>FitTrack — Personal Fitness Intelligence</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitCore — Personalized Fitness Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:        #030712;
-  --bg2:       #0a0f1e;
-  --bg3:       #0f1729;
-  --accent:    #00f5d4;
-  --accent2:   #7b2fff;
-  --accent3:   #ff2d6f;
-  --text:      #e2e8f0;
-  --muted:     #4a5568;
-  --border:    rgba(0,245,212,0.15);
-  --glow:      0 0 20px rgba(0,245,212,0.3);
-  --glow2:     0 0 20px rgba(123,47,255,0.3);
+  --bg: #080b10;
+  --surface: #0d1117;
+  --card: #111820;
+  --border: rgba(0,255,180,0.12);
+  --border2: rgba(0,255,180,0.06);
+  --accent: #00ffb4;
+  --accent2: #ff3a6e;
+  --accent3: #7b5ea7;
+  --accent4: #ffa500;
+  --text: #e8f0f7;
+  --muted: #6a7d90;
+  --dim: #354354;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+  --radius: 12px;
+  --radius-sm: 8px;
 }
-
-* { margin:0; padding:0; box-sizing:border-box; }
-
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 15px;
+  font-family: var(--font-body);
   min-height: 100vh;
   overflow-x: hidden;
 }
-
-/* animated grid bg */
 body::before {
-  content:'';
-  position:fixed; inset:0; z-index:0;
+  content: '';
+  position: fixed; inset: 0;
   background-image:
-    linear-gradient(rgba(0,245,212,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,245,212,0.03) 1px, transparent 1px);
+    linear-gradient(rgba(0,255,180,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,180,0.03) 1px, transparent 1px);
   background-size: 40px 40px;
-  animation: gridMove 20s linear infinite;
+  pointer-events: none;
+  z-index: 0;
 }
-@keyframes gridMove { to { background-position: 40px 40px; } }
+.app-shell { display: flex; min-height: 100vh; position: relative; z-index: 1; }
 
-/* scanline overlay */
-body::after {
-  content:'';
-  position:fixed; inset:0; z-index:1; pointer-events:none;
-  background: repeating-linear-gradient(
-    0deg, transparent, transparent 2px,
-    rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px
-  );
+/* SIDEBAR */
+.sidebar {
+  width: 220px; min-height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border2);
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh;
+  overflow-y: auto; z-index: 100; flex-shrink: 0;
 }
+.sidebar-logo { padding: 28px 20px 20px; border-bottom: 1px solid var(--border2); }
+.logo-text {
+  font-family: var(--font-display); font-size: 2rem;
+  letter-spacing: 2px; color: var(--accent); line-height: 1;
+  text-shadow: 0 0 30px rgba(0,255,180,0.5);
+}
+.logo-sub { font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted); letter-spacing: 3px; text-transform: uppercase; margin-top: 2px; }
+.nav-section { padding: 16px 12px; flex: 1; }
+.nav-label {
+  font-family: var(--font-mono); font-size: 0.6rem;
+  color: var(--dim); letter-spacing: 3px; text-transform: uppercase;
+  padding: 0 8px; margin-bottom: 6px; margin-top: 14px;
+}
+.nav-label:first-child { margin-top: 0; }
+.nav-btn {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 10px 12px;
+  border: none; border-radius: var(--radius-sm);
+  background: transparent; color: var(--muted);
+  font-family: var(--font-body); font-size: 0.85rem; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; text-align: left;
+}
+.nav-btn:hover { background: rgba(0,255,180,0.06); color: var(--text); }
+.nav-btn.active { background: rgba(0,255,180,0.1); color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+.sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border2); }
+.status-dot { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
 
-#app { position:relative; z-index:2; }
+/* MAIN */
+.main { flex: 1; overflow: hidden; min-width: 0; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 32px; border-bottom: 1px solid var(--border2);
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(8,11,16,0.95); backdrop-filter: blur(12px);
+}
+.page-title { font-family: var(--font-display); font-size: 1.8rem; letter-spacing: 2px; }
+.refresh-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border: 1px solid var(--border);
+  border-radius: 100px; background: transparent; color: var(--accent);
+  font-family: var(--font-mono); font-size: 0.7rem; cursor: pointer;
+  transition: all 0.2s; letter-spacing: 1px;
+}
+.refresh-btn:hover { background: rgba(0,255,180,0.1); }
+.refresh-btn.loading .ri { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.content-area { padding: 28px 32px; }
 
-/* ── HEADER ── */
-header {
-  display:flex; align-items:center; justify-content:space-between;
-  padding: 20px 40px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(10,15,30,0.8);
-  backdrop-filter: blur(20px);
-  position:sticky; top:0; z-index:100;
-}
+/* TABS */
+.tab-panel { display: none; animation: fadeIn 0.3s ease; }
+.tab-panel.active { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
 
-.logo {
-  font-family:'Orbitron',monospace;
-  font-size:1.4rem; font-weight:900;
-  letter-spacing:3px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-}
+/* GRID */
+.grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 16px; }
 
-.logo span {
-  font-size:0.55rem; font-weight:400; letter-spacing:6px;
-  display:block; color:var(--muted); -webkit-text-fill-color:var(--muted);
-  margin-top:-4px;
+/* CARDS */
+.card {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 20px;
+  position: relative; transition: border-color 0.2s; overflow: hidden;
 }
+.card:hover { border-color: var(--border); }
+.card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg,transparent,rgba(0,255,180,0.3),transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+.card:hover::before { opacity: 1; }
+.card-label { font-family: var(--font-mono); font-size: 0.62rem; color: var(--muted); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
+.card-value { font-family: var(--font-display); font-size: 2.4rem; color: var(--text); line-height: 1; }
+.card-value.accent { color: var(--accent); text-shadow: 0 0 20px rgba(0,255,180,0.4); }
+.card-value.pink { color: var(--accent2); }
+.card-value.purple { color: var(--accent3); }
+.card-value.orange { color: var(--accent4); }
+.card-sub { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+.card-icon { position: absolute; top: 16px; right: 16px; font-size: 1.6rem; opacity: 0.3; }
 
-.status-dot {
-  width:8px; height:8px; border-radius:50%;
-  background:var(--accent);
-  box-shadow: 0 0 10px var(--accent);
-  animation: pulse 2s infinite;
-  display:inline-block; margin-right:8px;
-}
-@keyframes pulse {
-  0%,100% { opacity:1; transform:scale(1); }
-  50%      { opacity:0.5; transform:scale(1.3); }
-}
+/* SECTION HEADER */
+.section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+.section-title { font-family: var(--font-display); font-size: 1.3rem; letter-spacing: 2px; }
 
-.live-badge {
-  font-family:'Orbitron',monospace;
-  font-size:0.6rem; letter-spacing:3px;
-  color:var(--accent); display:flex; align-items:center; gap:6px;
-}
-
-/* ── NAV TABS ── */
-nav {
-  display:flex; gap:4px;
-  padding: 16px 40px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(10,15,30,0.6);
-  overflow-x:auto;
-}
-
-.tab {
-  padding: 8px 20px;
-  background:transparent;
-  border: 1px solid transparent;
-  color:var(--muted);
-  font-family:'Orbitron',monospace;
-  font-size:0.6rem; letter-spacing:2px;
-  cursor:pointer;
-  transition: all 0.3s;
-  white-space:nowrap;
-  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-}
-.tab:hover { color:var(--accent); border-color:var(--border); }
-.tab.active {
-  color:var(--accent);
-  background: rgba(0,245,212,0.08);
-  border-color:var(--accent);
-  box-shadow: var(--glow);
-}
-
-/* ── MAIN ── */
-main { padding: 32px 40px; max-width:1400px; margin:0 auto; }
-
-.section { display:none; animation: fadeIn 0.4s ease; }
-.section.active { display:block; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-
-.section-title {
-  font-family:'Orbitron',monospace;
-  font-size:0.7rem; letter-spacing:4px;
-  color:var(--accent); margin-bottom:24px;
-  display:flex; align-items:center; gap:12px;
-}
-.section-title::after {
-  content:''; flex:1; height:1px;
-  background:linear-gradient(90deg,var(--accent),transparent);
-}
-
-/* ── STAT CARDS ── */
-.stats-grid {
-  display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
-  gap:16px; margin-bottom:32px;
-}
-
-.stat-card {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  padding:20px;
-  position:relative; overflow:hidden;
-  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
-  transition: all 0.3s;
-  animation: slideUp 0.5s ease both;
-}
-.stat-card:hover {
-  border-color:var(--accent);
-  box-shadow:var(--glow);
-  transform:translateY(-2px);
-}
-.stat-card::before {
-  content:''; position:absolute;
-  top:0; left:0; right:0; height:2px;
-  background:linear-gradient(90deg, var(--accent), var(--accent2));
-}
-
-.stat-label {
-  font-size:0.65rem; letter-spacing:2px;
-  color:var(--muted); margin-bottom:8px;
-  font-family:'Orbitron',monospace;
-}
-.stat-value {
-  font-family:'Orbitron',monospace;
-  font-size:1.8rem; font-weight:800;
-  color:var(--accent); line-height:1;
-}
-.stat-sub { font-size:0.8rem; color:var(--muted); margin-top:4px; }
-
-@keyframes slideUp {
-  from { opacity:0; transform:translateY(20px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-
-/* ── USER CARDS ── */
-.users-grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-  gap:20px;
-}
-
+/* USER CARDS */
 .user-card {
-  background:var(--bg3);
-  border:1px solid var(--border);
-  padding:24px;
-  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
-  transition:all 0.3s;
-  animation: slideUp 0.5s ease both;
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 24px;
+  transition: all 0.25s; position: relative; overflow: hidden;
 }
-.user-card:hover { border-color:var(--accent2); box-shadow:var(--glow2); }
+.user-card:hover { border-color: rgba(0,255,180,0.25); transform: translateY(-2px); }
+.user-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent3), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 1.3rem; color: var(--bg);
+  margin-bottom: 14px;
+}
+.user-name { font-family: var(--font-display); font-size: 1.4rem; letter-spacing: 1px; margin-bottom: 2px; }
+.user-meta { font-size: 0.75rem; color: var(--muted); margin-bottom: 14px; }
+.fitness-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 100px;
+  font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 16px;
+}
+.badge-beginner { background: rgba(0,255,180,0.1); color: var(--accent); border: 1px solid rgba(0,255,180,0.2); }
+.badge-intermediate { background: rgba(255,165,0,0.1); color: var(--accent4); border: 1px solid rgba(255,165,0,0.2); }
+.badge-advanced { background: rgba(255,58,110,0.1); color: var(--accent2); border: 1px solid rgba(255,58,110,0.2); }
+.user-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.u-stat { text-align: center; }
+.u-stat-v { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; }
+.u-stat-l { font-size: 0.62rem; color: var(--muted); margin-top: 2px; }
 
-.user-name {
-  font-family:'Orbitron',monospace;
-  font-size:1rem; font-weight:700;
-  color:var(--text); margin-bottom:4px;
-}
-.user-meta { color:var(--muted); font-size:0.85rem; margin-bottom:16px; }
-.user-location {
-  display:inline-block; padding:2px 10px;
-  background:rgba(0,245,212,0.1);
-  border:1px solid var(--border);
-  color:var(--accent); font-size:0.75rem;
-  letter-spacing:1px; margin-bottom:16px;
-}
-
-.user-stats { display:flex; gap:16px; flex-wrap:wrap; }
-.user-stat { text-align:center; }
-.user-stat-val {
-  font-family:'Orbitron',monospace;
-  font-size:1.1rem; font-weight:700; color:var(--accent2);
-}
-.user-stat-lbl { font-size:0.65rem; color:var(--muted); letter-spacing:1px; }
-
-/* ── WEATHER CARDS ── */
-.weather-grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-  gap:16px;
-}
-
+/* WEATHER CARDS */
 .weather-card {
-  background:var(--bg3);
-  border:1px solid var(--border);
-  padding:24px; text-align:center;
-  position:relative; overflow:hidden;
-  clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);
-  transition:all 0.3s;
-  animation:slideUp 0.5s ease both;
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 24px;
+  display: flex; align-items: center; gap: 20px; transition: all 0.25s;
 }
-.weather-card:hover { border-color:var(--accent); box-shadow:var(--glow); }
+.weather-card:hover { border-color: rgba(0,255,180,0.25); }
+.weather-icon { font-size: 3rem; }
+.weather-city { font-family: var(--font-display); font-size: 1.4rem; letter-spacing: 1px; }
+.weather-temp { font-family: var(--font-display); font-size: 2.2rem; color: var(--accent4); line-height: 1; }
+.weather-cond { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+.weather-hum { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); margin-top: 6px; }
 
-.weather-city {
-  font-family:'Orbitron',monospace;
-  font-size:0.7rem; letter-spacing:3px; color:var(--muted); margin-bottom:12px;
+/* TABLES */
+.table-wrap { background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead { background: rgba(0,255,180,0.04); }
+th {
+  font-family: var(--font-mono); font-size: 0.62rem; color: var(--muted);
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border2);
 }
-.weather-temp {
-  font-family:'Orbitron',monospace;
-  font-size:2.5rem; font-weight:900;
-  color:var(--accent); line-height:1;
-}
-.weather-condition {
-  font-size:0.9rem; color:var(--text); margin:8px 0;
-  letter-spacing:1px;
-}
-.weather-humidity { font-size:0.8rem; color:var(--muted); }
+td { padding: 12px 16px; font-size: 0.85rem; border-bottom: 1px solid var(--border2); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(0,255,180,0.02); }
+.td-mono { font-family: var(--font-mono); font-size: 0.8rem; }
+.td-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 1px; }
+.bg { background: rgba(0,255,180,0.12); color: var(--accent); }
+.br { background: rgba(255,58,110,0.12); color: var(--accent2); }
+.bo { background: rgba(255,165,0,0.12); color: var(--accent4); }
+.bp { background: rgba(123,94,167,0.12); color: var(--accent3); }
+.bb { background: rgba(0,150,255,0.12); color: #4fc3f7; }
 
-.weather-icon { font-size:2rem; margin-bottom:8px; }
+/* GOALS */
+.goal-card { background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius); padding: 20px 24px; transition: border-color 0.25s; }
+.goal-card:hover { border-color: var(--border); }
+.goal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.goal-type { font-family: var(--font-display); font-size: 1.1rem; letter-spacing: 1px; }
+.goal-user { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+.goal-pct { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+.progress-bar { height: 6px; background: var(--dim); border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
+.progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent3), var(--accent)); box-shadow: 0 0 8px rgba(0,255,180,0.4); transition: width 1s cubic-bezier(0.25,1,0.5,1); }
+.goal-dates { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--muted); font-family: var(--font-mono); }
 
-/* ── TABLE ── */
-.data-table-wrap {
-  background:var(--bg3);
-  border:1px solid var(--border);
-  overflow:auto;
-}
-
-table {
-  width:100%; border-collapse:collapse;
-  font-size:0.9rem;
-}
-thead tr {
-  background:rgba(0,245,212,0.06);
-  border-bottom:1px solid var(--border);
-}
-thead th {
-  padding:14px 16px; text-align:left;
-  font-family:'Orbitron',monospace;
-  font-size:0.6rem; letter-spacing:2px;
-  color:var(--accent); font-weight:600;
-}
-tbody tr {
-  border-bottom:1px solid rgba(255,255,255,0.04);
-  transition:background 0.2s;
-  animation:slideUp 0.3s ease both;
-}
-tbody tr:hover { background:rgba(0,245,212,0.04); }
-tbody td { padding:12px 16px; color:var(--text); }
-
-.badge {
-  display:inline-block; padding:3px 10px;
-  font-size:0.7rem; letter-spacing:1px;
-  border:1px solid;
-}
-.badge-green  { color:#00f5d4; border-color:rgba(0,245,212,0.4); background:rgba(0,245,212,0.08); }
-.badge-purple { color:#a78bfa; border-color:rgba(167,139,250,0.4); background:rgba(167,139,250,0.08); }
-.badge-red    { color:#ff2d6f; border-color:rgba(255,45,111,0.4); background:rgba(255,45,111,0.08); }
-.badge-yellow { color:#fbbf24; border-color:rgba(251,191,36,0.4); background:rgba(251,191,36,0.08); }
-
-/* ── RECOMMENDATION CARDS ── */
-.rec-list { display:flex; flex-direction:column; gap:16px; }
-
+/* RECOMMENDATIONS */
 .rec-card {
-  background:var(--bg3);
-  border:1px solid var(--border);
-  border-left:3px solid var(--accent2);
-  padding:20px 24px;
-  transition:all 0.3s;
-  animation:slideUp 0.5s ease both;
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 22px 24px;
+  position: relative; overflow: hidden; transition: border-color 0.25s;
 }
-.rec-card:hover { border-left-color:var(--accent); box-shadow:var(--glow); }
+.rec-card:hover { border-color: rgba(0,255,180,0.2); }
+.rec-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--accent), var(--accent3)); }
+.rec-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.rec-user { font-family: var(--font-display); font-size: 1.1rem; letter-spacing: 1px; }
+.rec-date { font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); }
+.rec-msg { font-size: 0.85rem; line-height: 1.7; color: rgba(232,240,247,0.85); }
+.rec-tag { display: inline-flex; align-items: center; gap: 4px; margin-top: 12px; padding: 3px 8px; border-radius: 4px; background: rgba(123,94,167,0.12); color: var(--accent3); font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 2px; }
 
-.rec-name {
-  font-family:'Orbitron',monospace;
-  font-size:0.75rem; letter-spacing:2px;
-  color:var(--accent2); margin-bottom:10px;
+/* ANALYTICS BUTTONS */
+.view-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.query-btn {
+  padding: 8px 16px; border: 1px solid var(--border);
+  border-radius: 100px; background: transparent; color: var(--muted);
+  font-family: var(--font-mono); font-size: 0.65rem; cursor: pointer;
+  transition: all 0.2s; letter-spacing: 1px; text-transform: uppercase;
 }
-.rec-message { color:var(--text); line-height:1.7; font-size:0.95rem; }
-.rec-date { font-size:0.75rem; color:var(--muted); margin-top:10px; }
+.query-btn:hover { border-color: var(--accent); color: var(--accent); }
+.query-btn.active { background: rgba(0,255,180,0.1); color: var(--accent); border-color: rgba(0,255,180,0.3); }
 
-/* ── GOAL PROGRESS ── */
-.goal-card {
-  background:var(--bg3);
-  border:1px solid var(--border);
-  padding:20px 24px; margin-bottom:16px;
-  transition:all 0.3s;
-  animation:slideUp 0.5s ease both;
-}
-.goal-card:hover { border-color:var(--accent2); }
-
-.goal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-.goal-name { font-family:'Orbitron',monospace; font-size:0.75rem; letter-spacing:2px; color:var(--text); }
-.goal-pct  { font-family:'Orbitron',monospace; font-size:1rem; font-weight:700; color:var(--accent); }
-
-.progress-bar-bg {
-  height:6px; background:rgba(255,255,255,0.06);
-  border-radius:3px; overflow:hidden;
-}
-.progress-bar-fill {
-  height:100%; border-radius:3px;
-  background:linear-gradient(90deg, var(--accent2), var(--accent));
-  transition:width 1s ease;
-  box-shadow:0 0 10px rgba(0,245,212,0.5);
-}
-.goal-meta { display:flex; justify-content:space-between; margin-top:8px; font-size:0.8rem; color:var(--muted); }
-
-/* ── LOADING ── */
-.loading {
-  text-align:center; padding:60px;
-  font-family:'Orbitron',monospace;
-  font-size:0.7rem; letter-spacing:4px; color:var(--muted);
-}
-.loading::after {
-  content:''; display:block; width:40px; height:2px;
-  background:var(--accent); margin:16px auto 0;
-  animation:loadBar 1.5s ease infinite;
-}
-@keyframes loadBar {
-  0%   { width:0; opacity:1; }
-  100% { width:100px; opacity:0; }
+/* LOADER */
+.loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 12px; }
+.loader { width: 32px; height: 32px; border: 2px solid var(--dim); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+.loading-text { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 3px; }
+.empty-state { text-align: center; padding: 60px 20px; }
+.empty-icon { font-size: 3rem; opacity: 0.3; margin-bottom: 10px; }
+.empty-text { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.error-banner {
+  background: rgba(255,58,110,0.1); border: 1px solid rgba(255,58,110,0.2);
+  border-radius: var(--radius-sm); padding: 12px 16px;
+  font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent2);
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
 }
 
-/* ── GRID LAYOUTS ── */
-.two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
-@media(max-width:900px) { .two-col { grid-template-columns:1fr; } }
+/* DASHBOARD LAYOUT */
+.dash-highlight { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-top: 16px; }
+.big-card { background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius); padding: 24px; overflow: hidden; }
+.big-card-title { font-family: var(--font-display); font-size: 1.1rem; letter-spacing: 2px; margin-bottom: 16px; color: var(--muted); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 3px; }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .sidebar { width: 58px; }
+  .logo-sub, .nav-label, .nav-btn span, .sidebar-footer span { display: none; }
+  .logo-text { font-size: 1.1rem; letter-spacing: 0; }
+  .nav-btn { padding: 10px; justify-content: center; }
+  .grid-4 { grid-template-columns: repeat(2,1fr); }
+  .grid-3 { grid-template-columns: repeat(2,1fr); }
+  .content-area { padding: 16px; }
+  .topbar { padding: 14px 16px; }
+  .dash-highlight { grid-template-columns: 1fr; }
+}
+@media (max-width: 580px) {
+  .grid-2,.grid-3,.grid-4 { grid-template-columns: 1fr; }
+  .grid-auto { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
-<div id="app">
+<div class="app-shell">
 
-<!-- HEADER -->
-<header>
-  <div class="logo">
-    FITTRACK
-    <span>PERSONAL FITNESS INTELLIGENCE</span>
-  </div>
-  <div class="live-badge">
-    <span class="status-dot"></span>
-    LIVE DB CONNECTION
-  </div>
-</header>
-
-<!-- NAV -->
-<nav>
-  <button class="tab active" onclick="showTab('dashboard')">DASHBOARD</button>
-  <button class="tab" onclick="showTab('users')">USERS</button>
-  <button class="tab" onclick="showTab('weather')">WEATHER</button>
-  <button class="tab" onclick="showTab('workouts')">WORKOUTS</button>
-  <button class="tab" onclick="showTab('meals')">MEALS</button>
-  <button class="tab" onclick="showTab('sleep')">SLEEP</button>
-  <button class="tab" onclick="showTab('goals')">GOALS</button>
-  <button class="tab" onclick="showTab('recommendations')">RECOMMENDATIONS</button>
-  <button class="tab" onclick="showTab('views')">VIEWS</button>
-  <button class="tab" onclick="showTab('queries')">QUERIES</button>
-</nav>
-
-<main>
-
-  <!-- DASHBOARD -->
-  <div id="tab-dashboard" class="section active">
-    <div class="section-title">SYSTEM OVERVIEW</div>
-    <div class="stats-grid" id="dash-stats">
-      <div class="loading">LOADING DATA</div>
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-text">FITCORE</div>
+      <div class="logo-sub">Intelligence</div>
     </div>
-    <div class="two-col">
-      <div>
-        <div class="section-title">RECENT WORKOUTS</div>
-        <div class="data-table-wrap" id="dash-workouts">
-          <div class="loading">LOADING</div>
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <button class="nav-btn active" onclick="showTab('dashboard',this)"><span class="nav-icon">⚡</span><span>Dashboard</span></button>
+      <button class="nav-btn" onclick="showTab('users',this)"><span class="nav-icon">👤</span><span>Users</span></button>
+      <button class="nav-btn" onclick="showTab('weather',this)"><span class="nav-icon">🌡</span><span>Weather</span></button>
+      <div class="nav-label">Activity</div>
+      <button class="nav-btn" onclick="showTab('workouts',this)"><span class="nav-icon">💪</span><span>Workouts</span></button>
+      <button class="nav-btn" onclick="showTab('meals',this)"><span class="nav-icon">🥗</span><span>Meals</span></button>
+      <button class="nav-btn" onclick="showTab('sleep',this)"><span class="nav-icon">🌙</span><span>Sleep</span></button>
+      <button class="nav-btn" onclick="showTab('goals',this)"><span class="nav-icon">🎯</span><span>Goals</span></button>
+      <div class="nav-label">Intelligence</div>
+      <button class="nav-btn" onclick="showTab('recs',this)"><span class="nav-icon">🤖</span><span>AI Recs</span></button>
+      <button class="nav-btn" onclick="showTab('views',this)"><span class="nav-icon">📊</span><span>Analytics</span></button>
+      <button class="nav-btn" onclick="showTab('queries',this)"><span class="nav-icon">🔍</span><span>Queries</span></button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="status-dot"><div class="dot"></div><span>API Live</span></div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="pageTitle">DASHBOARD</div>
+      <button class="refresh-btn" onclick="refreshCurrent()" id="refreshBtn">
+        <span class="ri">↻</span> REFRESH
+      </button>
+    </div>
+
+    <div class="content-area">
+      <div id="errBanner" class="error-banner" style="display:none">⚠ <span id="errMsg">Cannot connect to API at localhost:5000. Ensure Flask server is running.</span></div>
+
+      <!-- DASHBOARD -->
+      <div class="tab-panel active" id="tab-dashboard">
+        <div class="grid-4" id="dashStats"><div class="loading-state"><div class="loader"></div></div></div>
+        <div class="dash-highlight">
+          <div class="big-card">
+            <div class="big-card-title">RECENT WORKOUTS</div>
+            <div id="dashWorkouts"><div class="loading-state"><div class="loader"></div></div></div>
+          </div>
+          <div class="big-card">
+            <div class="big-card-title">LIVE WEATHER</div>
+            <div id="dashWeather"><div class="loading-state"><div class="loader"></div></div></div>
+          </div>
+        </div>
+        <div style="margin-top:24px">
+          <div class="section-title" style="margin-bottom:14px;font-family:var(--font-display);letter-spacing:2px">AI RECOMMENDATIONS</div>
+          <div id="dashRecs"><div class="loading-state"><div class="loader"></div></div></div>
         </div>
       </div>
-      <div>
-        <div class="section-title">LATEST RECOMMENDATIONS</div>
-        <div id="dash-recs"><div class="loading">LOADING</div></div>
+
+      <!-- USERS -->
+      <div class="tab-panel" id="tab-users">
+        <div class="grid-auto" id="usersGrid"><div class="loading-state"><div class="loader"></div><div class="loading-text">LOADING USERS</div></div></div>
       </div>
-    </div>
-  </div>
 
-  <!-- USERS -->
-  <div id="tab-users" class="section">
-    <div class="section-title">USER PROFILES</div>
-    <div class="users-grid" id="users-grid">
-      <div class="loading">LOADING USERS</div>
-    </div>
-  </div>
+      <!-- WEATHER -->
+      <div class="tab-panel" id="tab-weather">
+        <div class="grid-auto" id="weatherGrid"><div class="loading-state"><div class="loader"></div></div></div>
+        <div id="weatherTime" style="margin-top:10px;font-family:var(--font-mono);font-size:0.65rem;color:var(--muted);text-align:right"></div>
+      </div>
 
-  <!-- WEATHER -->
-  <div id="tab-weather" class="section">
-    <div class="section-title">LIVE WEATHER — ALL CITIES</div>
-    <div class="weather-grid" id="weather-grid">
-      <div class="loading">FETCHING WEATHER</div>
-    </div>
-  </div>
+      <!-- WORKOUTS -->
+      <div class="tab-panel" id="tab-workouts">
+        <div class="table-wrap" id="workoutsTable"><div class="loading-state"><div class="loader"></div></div></div>
+      </div>
 
-  <!-- WORKOUTS -->
-  <div id="tab-workouts" class="section">
-    <div class="section-title">WORKOUT LOG</div>
-    <div class="data-table-wrap">
-      <table>
-        <thead><tr>
-          <th>USER</th><th>TYPE</th><th>DURATION</th><th>CALORIES</th><th>DATE</th>
-        </tr></thead>
-        <tbody id="workouts-body"><tr><td colspan="5"><div class="loading">LOADING</div></td></tr></tbody>
-      </table>
-    </div>
-  </div>
+      <!-- MEALS -->
+      <div class="tab-panel" id="tab-meals">
+        <div class="table-wrap" id="mealsTable"><div class="loading-state"><div class="loader"></div></div></div>
+      </div>
 
-  <!-- MEALS -->
-  <div id="tab-meals" class="section">
-    <div class="section-title">MEAL LOG</div>
-    <div class="data-table-wrap">
-      <table>
-        <thead><tr>
-          <th>USER</th><th>MEAL</th><th>CALORIES</th><th>PROTEIN</th><th>CARBS</th><th>FATS</th><th>DATE</th>
-        </tr></thead>
-        <tbody id="meals-body"><tr><td colspan="7"><div class="loading">LOADING</div></td></tr></tbody>
-      </table>
-    </div>
-  </div>
+      <!-- SLEEP -->
+      <div class="tab-panel" id="tab-sleep">
+        <div class="table-wrap" id="sleepTable"><div class="loading-state"><div class="loader"></div></div></div>
+      </div>
 
-  <!-- SLEEP -->
-  <div id="tab-sleep" class="section">
-    <div class="section-title">SLEEP LOG</div>
-    <div class="data-table-wrap">
-      <table>
-        <thead><tr>
-          <th>USER</th><th>HOURS</th><th>QUALITY</th><th>DATE</th>
-        </tr></thead>
-        <tbody id="sleep-body"><tr><td colspan="4"><div class="loading">LOADING</div></td></tr></tbody>
-      </table>
-    </div>
-  </div>
+      <!-- GOALS -->
+      <div class="tab-panel" id="tab-goals">
+        <div class="grid-auto" id="goalsGrid"><div class="loading-state"><div class="loader"></div></div></div>
+      </div>
 
-  <!-- GOALS -->
-  <div id="tab-goals" class="section">
-    <div class="section-title">GOAL TRACKER</div>
-    <div id="goals-list"><div class="loading">LOADING GOALS</div></div>
-  </div>
+      <!-- RECOMMENDATIONS -->
+      <div class="tab-panel" id="tab-recs">
+        <div id="recsGrid" style="display:flex;flex-direction:column;gap:12px"><div class="loading-state"><div class="loader"></div></div></div>
+      </div>
 
-  <!-- RECOMMENDATIONS -->
-  <div id="tab-recommendations" class="section">
-    <div class="section-title">PERSONALIZED RECOMMENDATIONS</div>
-    <div class="rec-list" id="rec-list">
-      <div class="loading">LOADING RECOMMENDATIONS</div>
-    </div>
-  </div>
-
-  <!-- VIEWS -->
-  <div id="tab-views" class="section">
-    <div class="section-title">WEEKLY PROGRESS</div>
-    <div class="data-table-wrap" style="margin-bottom:32px">
-      <table>
-        <thead><tr>
-          <th>USER</th><th>LOCATION</th><th>WORKOUTS</th><th>WORKOUT MINS</th><th>CALS BURNED</th><th>CALS CONSUMED</th><th>AVG SLEEP</th>
-        </tr></thead>
-        <tbody id="view-weekly"><tr><td colspan="7"><div class="loading">LOADING</div></td></tr></tbody>
-      </table>
-    </div>
-
-    <div class="section-title">AVG CALORIES PER WORKOUT TYPE</div>
-    <div class="data-table-wrap" style="margin-bottom:32px">
-      <table>
-        <thead><tr>
-          <th>WORKOUT TYPE</th><th>SESSIONS</th><th>AVG DURATION</th><th>AVG CALS BURNED</th><th>TOTAL CALS</th>
-        </tr></thead>
-        <tbody id="view-calories"><tr><td colspan="5"><div class="loading">LOADING</div></td></tr></tbody>
-      </table>
-    </div>
-
-    <div class="two-col">
-      <div>
-        <div class="section-title">SLEEP QUALITY SUMMARY</div>
-        <div class="data-table-wrap">
-          <table>
-            <thead><tr><th>USER</th><th>AVG SLEEP</th><th>POOR DAYS</th><th>AVG DAYS</th><th>GOOD DAYS</th></tr></thead>
-            <tbody id="view-sleep"><tr><td colspan="5"><div class="loading">LOADING</div></td></tr></tbody>
-          </table>
+      <!-- VIEWS -->
+      <div class="tab-panel" id="tab-views">
+        <div class="view-tabs" id="viewTabs">
+          <button class="query-btn active" onclick="loadView('weekly',this)">Weekly Summary</button>
+          <button class="query-btn" onclick="loadView('calories',this)">Calories / Workout</button>
+          <button class="query-btn" onclick="loadView('sleep',this)">Sleep Quality</button>
+          <button class="query-btn" onclick="loadView('nutrition',this)">Nutrition</button>
         </div>
+        <div class="table-wrap" id="viewsTable"><div class="loading-state"><div class="loader"></div></div></div>
       </div>
-      <div>
-        <div class="section-title">NUTRITION SUMMARY</div>
-        <div class="data-table-wrap">
-          <table>
-            <thead><tr><th>USER</th><th>AVG CALS</th><th>AVG PROTEIN</th><th>AVG CARBS</th><th>AVG FATS</th></tr></thead>
-            <tbody id="view-nutrition"><tr><td colspan="5"><div class="loading">LOADING</div></td></tr></tbody>
-          </table>
+
+      <!-- QUERIES -->
+      <div class="tab-panel" id="tab-queries">
+        <div class="view-tabs" id="queryTabs">
+          <button class="query-btn active" onclick="loadQuery('top',this)">Top Performers</button>
+          <button class="query-btn" onclick="loadQuery('missed',this)">Missed Workouts</button>
+          <button class="query-btn" onclick="loadQuery('nutrition',this)">Nutrition Status</button>
+          <button class="query-btn" onclick="loadQuery('popular',this)">Popular Workouts</button>
+          <button class="query-btn" onclick="loadQuery('sleep',this)">Sleep Ranking</button>
+          <button class="query-btn" onclick="loadQuery('balance',this)">Calorie Balance</button>
         </div>
+        <div class="table-wrap" id="queriesTable"><div class="loading-state"><div class="loader"></div></div></div>
       </div>
+
     </div>
   </div>
-
-  <!-- QUERIES -->
-  <div id="tab-queries" class="section">
-
-    <div class="section-title">TOP PERFORMERS — CALORIES BURNED</div>
-    <div class="data-table-wrap" style="margin-bottom:32px">
-      <table>
-        <thead><tr><th>USER</th><th>FITNESS LEVEL</th><th>TOTAL CALS BURNED</th><th>TOTAL WORKOUTS</th></tr></thead>
-        <tbody id="q-top"><tr><td colspan="4"><div class="loading">LOADING</div></td></tr></tbody>
-      </table>
-    </div>
-
-    <div class="section-title">USERS WHO MISSED WORKOUTS</div>
-    <div class="data-table-wrap" style="margin-bottom:32px">
-      <table>
-        <thead><tr><th>USER</th><th>FITNESS LEVEL</th><th>LOCATION</th><th>LAST WORKOUT</th><th>DAYS SINCE</th></tr></thead>
-        <tbody id="q-missed"><tr><td colspan="5"><div class="loading">LOADING</div></td></tr></tbody>
-      </table>
-    </div>
-
-    <div class="two-col" style="margin-bottom:32px">
-      <div>
-        <div class="section-title">NUTRITION STATUS</div>
-        <div class="data-table-wrap">
-          <table>
-            <thead><tr><th>USER</th><th>AVG CALS</th><th>DEFICIT</th><th>STATUS</th></tr></thead>
-            <tbody id="q-nutrition"><tr><td colspan="4"><div class="loading">LOADING</div></td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <div>
-        <div class="section-title">POPULAR WORKOUTS</div>
-        <div class="data-table-wrap">
-          <table>
-            <thead><tr><th>TYPE</th><th>FREQUENCY</th><th>AVG MINS</th><th>AVG CALS</th></tr></thead>
-            <tbody id="q-popular"><tr><td colspan="4"><div class="loading">LOADING</div></td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div class="two-col">
-      <div>
-        <div class="section-title">SLEEP QUALITY RANKING</div>
-        <div class="data-table-wrap">
-          <table>
-            <thead><tr><th>USER</th><th>AVG SLEEP</th><th>STATUS</th></tr></thead>
-            <tbody id="q-sleep"><tr><td colspan="3"><div class="loading">LOADING</div></td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <div>
-        <div class="section-title">CALORIE BALANCE</div>
-        <div class="data-table-wrap">
-          <table>
-            <thead><tr><th>USER</th><th>BURNED</th><th>CONSUMED</th><th>BALANCE</th></tr></thead>
-            <tbody id="q-balance"><tr><td colspan="4"><div class="loading">LOADING</div></td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-</main>
 </div>
 
 <script>
-const API = "http://localhost:5000/api";
+const API = 'http://localhost:5000/api';
+let currentTab = 'dashboard';
+const loaded = {};
+const titles = { dashboard:'Dashboard', users:'Users', weather:'Weather', workouts:'Workouts', meals:'Meals', sleep:'Sleep', goals:'Goals', recs:'AI Recommendations', views:'Analytics Views', queries:'Advanced Queries' };
 
-// ── TAB SWITCHING ────────────────────────────────────────────
-function showTab(name) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
+function showTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (btn) btn.classList.add('active');
+  document.getElementById('pageTitle').textContent = (titles[tab]||tab).toUpperCase();
+  currentTab = tab;
+  if (!loaded[tab]) { loadTab(tab); loaded[tab] = true; }
 }
 
-// ── FETCH HELPER ─────────────────────────────────────────────
-async function fetchAPI(endpoint) {
+function refreshCurrent() {
+  loaded[currentTab] = false;
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('loading');
+  setTimeout(() => btn.classList.remove('loading'), 1200);
+  loadTab(currentTab);
+  loaded[currentTab] = true;
+}
+
+function loadTab(tab) {
+  const map = { dashboard:loadDashboard, users:loadUsers, weather:loadWeather, workouts:loadWorkouts, meals:loadMeals, sleep:loadSleep, goals:loadGoals, recs:loadRecs };
+  if (map[tab]) map[tab]();
+  else if (tab === 'views') loadView('weekly', document.querySelector('#viewTabs .query-btn'));
+  else if (tab === 'queries') loadQuery('top', document.querySelector('#queryTabs .query-btn'));
+}
+
+async function get(path) {
   try {
-    const res = await fetch(API + endpoint);
-    return await res.json();
-  } catch(e) {
-    console.error('API error:', e);
-    return [];
+    const r = await fetch(API + path);
+    if (!r.ok) throw new Error(r.status);
+    document.getElementById('errBanner').style.display = 'none';
+    return await r.json();
+  } catch {
+    document.getElementById('errBanner').style.display = 'flex';
+    return null;
   }
 }
 
-// ── WEATHER ICON ─────────────────────────────────────────────
-function weatherIcon(condition) {
-  const map = {
-    'Clear':'☀️','Clouds':'☁️','Rain':'🌧️','Drizzle':'🌦️',
-    'Thunderstorm':'⛈️','Snow':'❄️','Haze':'🌫️','Mist':'🌫️','Fog':'🌫️'
-  };
-  return map[condition] || '🌡️';
-}
+function spin(id) { document.getElementById(id).innerHTML = `<div class="loading-state"><div class="loader"></div></div>`; }
+function empty(icon, msg) { return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-text">${msg}</div></div>`; }
 
-// ── SLEEP QUALITY ─────────────────────────────────────────────
-function sleepBadge(hrs) {
-  if (hrs >= 8)  return '<span class="badge badge-green">EXCELLENT</span>';
-  if (hrs >= 6)  return '<span class="badge badge-yellow">ADEQUATE</span>';
-  return '<span class="badge badge-red">POOR</span>';
+function wIcon(c) {
+  if (!c) return '🌡'; const s = c.toLowerCase();
+  if (s.includes('rain')||s.includes('drizzle')) return '🌧';
+  if (s.includes('thunder')) return '⛈';
+  if (s.includes('snow')) return '❄️';
+  if (s.includes('cloud')) return '⛅';
+  if (s.includes('fog')||s.includes('mist')||s.includes('haze')||s.includes('smoke')) return '🌫';
+  if (s.includes('clear')||s.includes('sun')) return '☀️';
+  return '🌤';
 }
-
-// ── FITNESS LEVEL BADGE ───────────────────────────────────────
-function levelBadge(level) {
-  if (level === 'Advanced')     return '<span class="badge badge-red">ADVANCED</span>';
-  if (level === 'Intermediate') return '<span class="badge badge-yellow">INTERMEDIATE</span>';
-  return '<span class="badge badge-green">BEGINNER</span>';
+function wtIcon(t) {
+  if (!t) return '💪'; const s = t.toLowerCase();
+  if (s.includes('run')||s.includes('cardio')) return '🏃';
+  if (s.includes('yoga')) return '🧘';
+  if (s.includes('swim')) return '🏊';
+  if (s.includes('cycl')||s.includes('bike')) return '🚴';
+  if (s.includes('strength')||s.includes('weight')) return '🏋️';
+  return '💪';
 }
+function sleepQ(h) {
+  if (h >= 7) return '<span class="td-badge bg">GOOD</span>';
+  if (h >= 6) return '<span class="td-badge bo">FAIR</span>';
+  return '<span class="td-badge br">LOW</span>';
+}
+function mBadge(t) {
+  const s = (t||'').toLowerCase();
+  const m = { breakfast:'bb', lunch:'bg', dinner:'bp', snack:'bo' };
+  return `<span class="td-badge ${m[s]||'bb'}">${(t||'').toUpperCase()}</span>`;
+}
+function fmtDate(d) { return d ? String(d).split('T')[0] : '—'; }
 
-// ── DASHBOARD ─────────────────────────────────────────────────
 async function loadDashboard() {
-  const [users, workouts, recs, weather] = await Promise.all([
-    fetchAPI('/users'), fetchAPI('/workouts'),
-    fetchAPI('/recommendations'), fetchAPI('/weather')
-  ]);
+  const [users, weather, workouts, recs] = await Promise.all([get('/users'), get('/weather'), get('/workouts'), get('/recommendations')]);
 
-  const totalWorkouts   = workouts.length;
-  const totalCalsBurned = users.reduce((s,u) => s + Number(u.total_calories_burned||0), 0);
-  const avgSleep        = users.length
-    ? (users.reduce((s,u) => s + Number(u.avg_sleep||0), 0) / users.length).toFixed(1)
-    : 0;
-  const cities          = weather.length;
+  // Stats
+  const sEl = document.getElementById('dashStats');
+  if (users && users.length) {
+    const tw = users.reduce((a,u) => a+(u.total_workouts||0), 0);
+    const tc = users.reduce((a,u) => a+(u.total_calories_burned||0), 0);
+    const as = (users.reduce((a,u) => a+(parseFloat(u.avg_sleep)||0), 0)/users.length).toFixed(1);
+    sEl.innerHTML = `
+      <div class="card"><span class="card-icon">👤</span><div class="card-label">Total Users</div><div class="card-value accent">${users.length}</div><div class="card-sub">Active profiles</div></div>
+      <div class="card"><span class="card-icon">💪</span><div class="card-label">Total Workouts</div><div class="card-value">${tw}</div><div class="card-sub">All sessions</div></div>
+      <div class="card"><span class="card-icon">🔥</span><div class="card-label">Calories Burned</div><div class="card-value pink">${tc.toLocaleString()}</div><div class="card-sub">Combined</div></div>
+      <div class="card"><span class="card-icon">🌙</span><div class="card-label">Avg Sleep</div><div class="card-value purple">${as}<span style="font-size:1rem"> hrs</span></div><div class="card-sub">Per user avg</div></div>
+    `;
+  } else sEl.innerHTML = empty('⚠','NO DATA');
 
-  document.getElementById('dash-stats').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-label">TOTAL USERS</div>
-      <div class="stat-value">${users.length}</div>
-      <div class="stat-sub">Active members</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">TOTAL WORKOUTS</div>
-      <div class="stat-value">${totalWorkouts}</div>
-      <div class="stat-sub">Sessions logged</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">CALORIES BURNED</div>
-      <div class="stat-value">${totalCalsBurned.toLocaleString()}</div>
-      <div class="stat-sub">Across all users</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">AVG SLEEP</div>
-      <div class="stat-value">${avgSleep}<span style="font-size:1rem">hr</span></div>
-      <div class="stat-sub">Per user average</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">CITIES TRACKED</div>
-      <div class="stat-value">${cities}</div>
-      <div class="stat-sub">Live weather feeds</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">RECOMMENDATIONS</div>
-      <div class="stat-value">${recs.length}</div>
-      <div class="stat-sub">Generated today</div>
-    </div>
-  `;
+  // Weather panel
+  const wEl = document.getElementById('dashWeather');
+  if (weather && weather.length) {
+    wEl.innerHTML = weather.slice(0,4).map(w => `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border2)">
+        <span style="font-size:1.5rem">${wIcon(w.condition_type)}</span>
+        <div style="flex:1"><div style="font-size:0.88rem;font-weight:500">${w.location}</div><div style="font-size:0.7rem;color:var(--muted)">${w.condition_type}</div></div>
+        <div style="font-family:var(--font-mono);color:var(--accent4)">${parseFloat(w.temperature).toFixed(1)}°C</div>
+      </div>`).join('');
+  } else wEl.innerHTML = empty('🌡','NO DATA');
 
-  // recent workouts (top 5)
-  const recent = workouts.slice(0,5);
-  document.getElementById('dash-workouts').innerHTML = `
-    <table>
-      <thead><tr><th>USER</th><th>TYPE</th><th>KCAL</th><th>DATE</th></tr></thead>
-      <tbody>
-        ${recent.map(w => `<tr>
-          <td>${w.name}</td>
-          <td><span class="badge badge-purple">${w.workout_type}</span></td>
-          <td style="color:var(--accent)">${w.calories_burned}</td>
-          <td style="color:var(--muted)">${w.workout_date}</td>
-        </tr>`).join('')}
-      </tbody>
-    </table>`;
+  // Recent workouts
+  const rwEl = document.getElementById('dashWorkouts');
+  if (workouts && workouts.length) {
+    rwEl.innerHTML = `<table><thead><tr><th>User</th><th>Type</th><th>Duration</th><th>Calories</th></tr></thead><tbody>
+      ${workouts.slice(-6).reverse().map(w => `<tr>
+        <td>${w.name||w.user_id}</td>
+        <td>${wtIcon(w.workout_type)} ${w.workout_type}</td>
+        <td class="td-mono">${w.duration_minutes}m</td>
+        <td class="td-mono" style="color:var(--accent2)">${w.calories_burned}</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  } else rwEl.innerHTML = empty('💪','NO WORKOUTS');
 
-  // latest recommendations (top 4)
-  document.getElementById('dash-recs').innerHTML = recs.slice(0,4).map(r => `
-    <div class="rec-card" style="margin-bottom:12px">
-      <div class="rec-name">${r.name}</div>
-      <div class="rec-message" style="font-size:0.82rem">${r.message.substring(0, 120)}...</div>
-    </div>`).join('');
+  // Recs
+  const rEl = document.getElementById('dashRecs');
+  if (recs && recs.length) {
+    rEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px">${recs.slice(0,4).map(buildRec).join('')}</div>`;
+  } else rEl.innerHTML = empty('🤖','NO RECOMMENDATIONS YET');
 }
 
-// ── USERS ─────────────────────────────────────────────────────
 async function loadUsers() {
-  const users = await fetchAPI('/users');
-  document.getElementById('users-grid').innerHTML = users.map((u,i) => `
-    <div class="user-card" style="animation-delay:${i*0.08}s">
+  spin('usersGrid');
+  const data = await get('/users');
+  const el = document.getElementById('usersGrid');
+  if (!data) { el.innerHTML = empty('👤','NO USERS'); return; }
+  el.innerHTML = data.map(u => {
+    const init = (u.name||'?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    const lvl = (u.fitness_level||'beginner').toLowerCase();
+    return `<div class="user-card">
+      <div class="user-avatar">${init}</div>
       <div class="user-name">${u.name}</div>
-      <div class="user-meta">${u.age} yrs · ${u.gender}</div>
-      <div class="user-location">📍 ${u.location}</div>
-      <div style="margin-bottom:12px">${levelBadge(u.fitness_level)}</div>
+      <div class="user-meta">${u.age}y · ${u.gender} · 📍 ${u.location}</div>
+      <span class="fitness-badge badge-${lvl}">${u.fitness_level}</span>
       <div class="user-stats">
-        <div class="user-stat">
-          <div class="user-stat-val">${u.total_workouts}</div>
-          <div class="user-stat-lbl">WORKOUTS</div>
-        </div>
-        <div class="user-stat">
-          <div class="user-stat-val">${Number(u.total_calories_burned).toLocaleString()}</div>
-          <div class="user-stat-lbl">KCAL BURNED</div>
-        </div>
-        <div class="user-stat">
-          <div class="user-stat-val">${u.avg_sleep}h</div>
-          <div class="user-stat-lbl">AVG SLEEP</div>
-        </div>
-      </div>
-    </div>`).join('');
-}
-
-// ── WEATHER ───────────────────────────────────────────────────
-async function loadWeather() {
-  const weather = await fetchAPI('/weather');
-  document.getElementById('weather-grid').innerHTML = weather.map((w,i) => `
-    <div class="weather-card" style="animation-delay:${i*0.1}s">
-      <div class="weather-city">${w.location.toUpperCase()}</div>
-      <div class="weather-icon">${weatherIcon(w.condition_type)}</div>
-      <div class="weather-temp">${w.temperature}°</div>
-      <div class="weather-condition">${w.condition_type}</div>
-      <div class="weather-humidity">💧 Humidity: ${w.humidity}%</div>
-      <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">${w.weather_date}</div>
-    </div>`).join('');
-}
-
-// ── WORKOUTS ──────────────────────────────────────────────────
-async function loadWorkouts() {
-  const data = await fetchAPI('/workouts');
-  document.getElementById('workouts-body').innerHTML = data.map((w,i) => `
-    <tr style="animation-delay:${i*0.03}s">
-      <td>${w.name}</td>
-      <td><span class="badge badge-purple">${w.workout_type}</span></td>
-      <td>${w.duration_minutes} min</td>
-      <td style="color:var(--accent);font-family:'Orbitron',monospace">${w.calories_burned}</td>
-      <td style="color:var(--muted)">${w.workout_date}</td>
-    </tr>`).join('');
-}
-
-// ── MEALS ─────────────────────────────────────────────────────
-async function loadMeals() {
-  const data = await fetchAPI('/meals');
-  document.getElementById('meals-body').innerHTML = data.map((m,i) => `
-    <tr style="animation-delay:${i*0.03}s">
-      <td>${m.name}</td>
-      <td><span class="badge badge-green">${m.meal_type}</span></td>
-      <td style="color:var(--accent);font-family:'Orbitron',monospace">${m.calories}</td>
-      <td>${m.protein}g</td>
-      <td>${m.carbs}g</td>
-      <td>${m.fats}g</td>
-      <td style="color:var(--muted)">${m.meal_date}</td>
-    </tr>`).join('');
-}
-
-// ── SLEEP ─────────────────────────────────────────────────────
-async function loadSleep() {
-  const data = await fetchAPI('/sleep');
-  document.getElementById('sleep-body').innerHTML = data.map((s,i) => `
-    <tr style="animation-delay:${i*0.03}s">
-      <td>${s.name}</td>
-      <td style="font-family:'Orbitron',monospace;color:var(--accent)">${s.sleep_hours}h</td>
-      <td>${sleepBadge(s.sleep_hours)}</td>
-      <td style="color:var(--muted)">${s.sleep_date}</td>
-    </tr>`).join('');
-}
-
-// ── GOALS ─────────────────────────────────────────────────────
-async function loadGoals() {
-  const data = await fetchAPI('/goals');
-  document.getElementById('goals-list').innerHTML = data.map((g,i) => {
-    const pct = Math.min(Math.max(Number(g.progress_pct)||0, 0), 100);
-    return `
-    <div class="goal-card" style="animation-delay:${i*0.1}s">
-      <div class="goal-header">
-        <div>
-          <div class="goal-name">${g.name} — ${g.goal_type}</div>
-          <div style="font-size:0.8rem;color:var(--muted);margin-top:4px">Target: ${g.target_value} · ${g.days_remaining} days remaining</div>
-        </div>
-        <div class="goal-pct">${pct}%</div>
-      </div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" style="width:${pct}%"></div>
-      </div>
-      <div class="goal-meta">
-        <span>Timeline Progress</span>
-        <span>${pct >= 75 ? '🔥 Almost There!' : pct >= 50 ? '💪 Halfway!' : pct >= 25 ? '📈 Good Start!' : '🚀 Just Started'}</span>
+        <div class="u-stat"><div class="u-stat-v">${u.total_workouts||0}</div><div class="u-stat-l">Workouts</div></div>
+        <div class="u-stat"><div class="u-stat-v">${(u.total_calories_burned||0).toLocaleString()}</div><div class="u-stat-l">Calories</div></div>
+        <div class="u-stat"><div class="u-stat-v">${parseFloat(u.avg_sleep||0).toFixed(1)}</div><div class="u-stat-l">Avg Sleep</div></div>
       </div>
     </div>`;
   }).join('');
 }
 
-// ── RECOMMENDATIONS ───────────────────────────────────────────
-async function loadRecommendations() {
-  const data = await fetchAPI('/recommendations');
-  document.getElementById('rec-list').innerHTML = data.map((r,i) => `
-    <div class="rec-card" style="animation-delay:${i*0.08}s">
-      <div class="rec-name">🤖 ${r.name.toUpperCase()}</div>
-      <div class="rec-message">${r.message}</div>
-      <div class="rec-date">${r.recommendation_date}</div>
+async function loadWeather() {
+  spin('weatherGrid');
+  const data = await get('/weather');
+  const el = document.getElementById('weatherGrid');
+  if (!data) { el.innerHTML = empty('🌡','NO WEATHER DATA'); return; }
+  el.innerHTML = data.map(w => `
+    <div class="weather-card">
+      <div class="weather-icon">${wIcon(w.condition_type)}</div>
+      <div>
+        <div class="weather-city">${w.location}</div>
+        <div class="weather-temp">${parseFloat(w.temperature).toFixed(1)}°C</div>
+        <div class="weather-cond">${w.condition_type}</div>
+        <div class="weather-hum">💧 Humidity: ${w.humidity}%</div>
+      </div>
     </div>`).join('');
+  document.getElementById('weatherTime').textContent = 'Updated: ' + (data[0]?.weather_date||'—');
 }
 
-// ── VIEWS ─────────────────────────────────────────────────────
-async function loadViews() {
-  const [weekly, calories, sleep, nutrition] = await Promise.all([
-    fetchAPI('/view/weekly'), fetchAPI('/view/calories'),
-    fetchAPI('/view/sleep'),  fetchAPI('/view/nutrition')
-  ]);
-
-  document.getElementById('view-weekly').innerHTML = weekly.map(r => `<tr>
-    <td>${r.name}</td><td>${r.location}</td>
-    <td style="color:var(--accent);font-family:'Orbitron',monospace">${r.total_workouts}</td>
-    <td>${r.total_workout_mins} min</td>
-    <td style="color:var(--accent2)">${r.total_calories_burned}</td>
-    <td>${r.total_calories_consumed}</td>
-    <td>${r.avg_sleep_hours}h</td>
-  </tr>`).join('');
-
-  document.getElementById('view-calories').innerHTML = calories.map(r => `<tr>
-    <td><span class="badge badge-purple">${r.workout_type}</span></td>
-    <td style="color:var(--accent);font-family:'Orbitron',monospace">${r.total_sessions}</td>
-    <td>${r.avg_duration_mins} min</td>
-    <td style="color:var(--accent2)">${r.avg_calories_burned}</td>
-    <td>${r.total_calories_burned}</td>
-  </tr>`).join('');
-
-  document.getElementById('view-sleep').innerHTML = sleep.map(r => `<tr>
-    <td>${r.name}</td>
-    <td style="color:var(--accent);font-family:'Orbitron',monospace">${r.avg_sleep_hours}h</td>
-    <td style="color:var(--accent3)">${r.poor_sleep_days}</td>
-    <td style="color:#fbbf24">${r.average_sleep_days}</td>
-    <td style="color:var(--accent)">${r.good_sleep_days}</td>
-  </tr>`).join('');
-
-  document.getElementById('view-nutrition').innerHTML = nutrition.map(r => `<tr>
-    <td>${r.name}</td>
-    <td style="color:var(--accent);font-family:'Orbitron',monospace">${r.avg_daily_calories}</td>
-    <td>${r.avg_protein}g</td>
-    <td>${r.avg_carbs}g</td>
-    <td>${r.avg_fats}g</td>
-  </tr>`).join('');
+async function loadWorkouts() {
+  spin('workoutsTable');
+  const data = await get('/workouts');
+  const el = document.getElementById('workoutsTable');
+  if (!data||!data.length) { el.innerHTML = empty('💪','NO WORKOUT DATA'); return; }
+  el.innerHTML = `<table><thead><tr><th>User</th><th>Type</th><th>Duration</th><th>Calories</th><th>Date</th></tr></thead><tbody>
+    ${data.map(w => `<tr>
+      <td>${w.name||w.user_id}</td>
+      <td>${wtIcon(w.workout_type)} ${w.workout_type}</td>
+      <td class="td-mono">${w.duration_minutes} min</td>
+      <td class="td-mono" style="color:var(--accent2)">${(w.calories_burned||0).toLocaleString()}</td>
+      <td class="td-mono" style="color:var(--muted)">${fmtDate(w.workout_date)}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
 }
 
-// ── QUERIES ───────────────────────────────────────────────────
-async function loadQueries() {
-  const [top, missed, nutrition, popular, sleep, balance] = await Promise.all([
-    fetchAPI('/query/top'),       fetchAPI('/query/missed'),
-    fetchAPI('/query/nutrition'), fetchAPI('/query/popular'),
-    fetchAPI('/query/sleep'),     fetchAPI('/query/balance')
-  ]);
+async function loadMeals() {
+  spin('mealsTable');
+  const data = await get('/meals');
+  const el = document.getElementById('mealsTable');
+  if (!data||!data.length) { el.innerHTML = empty('🥗','NO MEAL DATA'); return; }
+  el.innerHTML = `<table><thead><tr><th>User</th><th>Type</th><th>Calories</th><th>Protein</th><th>Carbs</th><th>Fats</th><th>Date</th></tr></thead><tbody>
+    ${data.map(m => `<tr>
+      <td>${m.name||m.user_id}</td>
+      <td>${mBadge(m.meal_type)}</td>
+      <td class="td-mono">${m.calories}</td>
+      <td class="td-mono" style="color:var(--accent)">${m.protein}g</td>
+      <td class="td-mono" style="color:var(--accent4)">${m.carbs}g</td>
+      <td class="td-mono" style="color:var(--accent2)">${m.fats}g</td>
+      <td class="td-mono" style="color:var(--muted)">${fmtDate(m.meal_date)}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
 
-  document.getElementById('q-top').innerHTML = top.map((r,i) => `<tr>
-    <td>${i===0?'🥇 ':''}${r.name}</td>
-    <td>${levelBadge(r.fitness_level)}</td>
-    <td style="color:var(--accent);font-family:'Orbitron',monospace">${Number(r.total_calories_burned).toLocaleString()}</td>
-    <td style="color:var(--accent2)">${r.total_workouts}</td>
-  </tr>`).join('');
+async function loadSleep() {
+  spin('sleepTable');
+  const data = await get('/sleep');
+  const el = document.getElementById('sleepTable');
+  if (!data||!data.length) { el.innerHTML = empty('🌙','NO SLEEP DATA'); return; }
+  el.innerHTML = `<table><thead><tr><th>User</th><th>Sleep Hours</th><th>Quality</th><th>Date</th></tr></thead><tbody>
+    ${data.map(s => `<tr>
+      <td>${s.name||s.user_id}</td>
+      <td class="td-mono" style="font-size:1rem">${parseFloat(s.sleep_hours).toFixed(1)} hrs</td>
+      <td>${sleepQ(s.sleep_hours)}</td>
+      <td class="td-mono" style="color:var(--muted)">${fmtDate(s.sleep_date)}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
 
-  document.getElementById('q-missed').innerHTML = missed.length
-    ? missed.map(r => `<tr>
-        <td>${r.name}</td>
-        <td>${levelBadge(r.fitness_level)}</td>
-        <td>📍 ${r.location}</td>
-        <td style="color:var(--muted)">${r.last_workout_date || 'Never'}</td>
-        <td><span class="badge badge-red">${r.days_since} days</span></td>
-      </tr>`).join('')
-    : '<tr><td colspan="5" style="text-align:center;color:var(--accent)">✅ All users are on track!</td></tr>';
-
-  document.getElementById('q-nutrition').innerHTML = nutrition.map(r => {
-    const badge = r.nutrition_status === 'On Track'
-      ? 'badge-green' : r.nutrition_status === 'Over Eating'
-      ? 'badge-red' : 'badge-yellow';
-    return `<tr>
-      <td>${r.name}</td>
-      <td style="color:var(--accent);font-family:'Orbitron',monospace">${r.avg_daily_calories}</td>
-      <td style="color:${r.calorie_deficit > 0 ? 'var(--accent3)' : 'var(--accent)'}">${r.calorie_deficit}</td>
-      <td><span class="badge ${badge}">${r.nutrition_status}</span></td>
-    </tr>`;
+async function loadGoals() {
+  spin('goalsGrid');
+  const data = await get('/goals');
+  const el = document.getElementById('goalsGrid');
+  if (!data||!data.length) { el.innerHTML = empty('🎯','NO GOALS SET'); return; }
+  el.innerHTML = data.map(g => {
+    const pct = Math.min(100, Math.max(0, parseFloat(g.progress_pct||g.percent_complete||0)));
+    return `<div class="goal-card">
+      <div class="goal-header">
+        <div><div class="goal-type">${g.goal_type}</div><div class="goal-user">${g.name||g.user_id}</div></div>
+        <div class="goal-pct">${pct.toFixed(0)}%</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="goal-dates"><span>Target: ${g.target_value}</span><span>${fmtDate(g.end_date)}</span></div>
+    </div>`;
   }).join('');
-
-  document.getElementById('q-popular').innerHTML = popular.map(r => `<tr>
-    <td><span class="badge badge-purple">${r.workout_type}</span></td>
-    <td style="color:var(--accent);font-family:'Orbitron',monospace">${r.frequency}</td>
-    <td>${r.avg_duration} min</td>
-    <td style="color:var(--accent2)">${r.avg_calories}</td>
-  </tr>`).join('');
-
-  document.getElementById('q-sleep').innerHTML = sleep.map(r => {
-    const badge = r.sleep_status === 'Excellent' ? 'badge-green'
-      : r.sleep_status === 'Adequate' ? 'badge-yellow' : 'badge-red';
-    return `<tr>
-      <td>${r.name}</td>
-      <td style="color:var(--accent);font-family:'Orbitron',monospace">${r.avg_sleep}h</td>
-      <td><span class="badge ${badge}">${r.sleep_status}</span></td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('q-balance').innerHTML = balance.map(r => `<tr>
-    <td>${r.name}</td>
-    <td style="color:var(--accent)">${Number(r.total_burned).toLocaleString()}</td>
-    <td style="color:var(--accent2)">${Number(r.total_consumed).toLocaleString()}</td>
-    <td><span class="badge ${r.net_balance > 0 ? 'badge-red' : 'badge-green'}">${r.net_balance > 0 ? '+' : ''}${Number(r.net_balance).toLocaleString()}</span></td>
-  </tr>`).join('');
 }
 
-// ── INIT ──────────────────────────────────────────────────────
-loadDashboard();
-loadUsers();
-loadWeather();
-loadWorkouts();
-loadMeals();
-loadSleep();
-loadGoals();
-loadRecommendations();
-loadViews();
-loadQueries();
+function buildRec(r) {
+  return `<div class="rec-card">
+    <div class="rec-header">
+      <div class="rec-user">${r.name}</div>
+      <div class="rec-date">${fmtDate(r.recommendation_date)}</div>
+    </div>
+    <div class="rec-msg">${r.message}</div>
+    <div class="rec-tag">🤖 AI GENERATED</div>
+  </div>`;
+}
+
+async function loadRecs() {
+  const el = document.getElementById('recsGrid');
+  el.innerHTML = '<div class="loading-state"><div class="loader"></div></div>';
+  const data = await get('/recommendations');
+  if (!data||!data.length) { el.innerHTML = empty('🤖','NO RECOMMENDATIONS YET'); return; }
+  el.innerHTML = data.map(buildRec).join('');
+}
+
+async function loadView(v, btn) {
+  document.querySelectorAll('#viewTabs .query-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  spin('viewsTable');
+  renderTable('viewsTable', await get('/view/' + v));
+}
+
+async function loadQuery(q, btn) {
+  document.querySelectorAll('#queryTabs .query-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  spin('queriesTable');
+  renderTable('queriesTable', await get('/query/' + q));
+}
+
+function renderTable(id, data) {
+  const el = document.getElementById(id);
+  if (!data||!data.length) { el.innerHTML = empty('📊','NO DATA'); return; }
+  const keys = Object.keys(data[0]);
+  el.innerHTML = `<table><thead><tr>${keys.map(k=>`<th>${k.replace(/_/g,' ')}</th>`).join('')}</tr></thead><tbody>
+    ${data.map(row=>`<tr>${keys.map(k=>{const v=row[k];return typeof v==='number'?`<td class="td-mono">${v.toLocaleString()}</td>`:`<td>${v??'—'}</td>`;}).join('')}</tr>`).join('')}
+  </tbody></table>`;
+}
+
+// Init
+loadDashboard(); loaded['dashboard'] = true;
+setInterval(() => { if (currentTab==='weather') { loaded['weather']=false; loadWeather(); loaded['weather']=true; } }, 30*60*1000);
 </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_file
 from flask_cors import CORS
 import oracledb
 import config
@@ -6,8 +6,13 @@ import config
 app = Flask(__name__)
 CORS(app)
 
+# ── ROOT ROUTE ───────────────────────────────────────────────
+@app.route('/')
+def index():
+    return send_file('index.html')
+
 # ── DB CONFIG ───────────────────────────────────────────────
-oracledb.init_oracle_client(lib_dir=config.INSTANT_CLIENT_PATH)
+# oracledb.init_oracle_client(lib_dir=config.INSTANT_CLIENT_PATH)
 
 DB_CONFIG = {
     "user":     config.DB_USER,
