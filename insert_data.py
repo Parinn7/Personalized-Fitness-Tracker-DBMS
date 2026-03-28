@@ -1,32 +1,1321 @@
-import oracledb
-import config
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitCore — Personalized Fitness Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080b10;
+  --surface: #0d1117;
+  --card: #111820;
+  --border: rgba(0,255,180,0.12);
+  --border2: rgba(0,255,180,0.06);
+  --accent: #00ffb4;
+  --accent2: #ff3a6e;
+  --accent3: #7b5ea7;
+  --accent4: #ffa500;
+  --coach: #4fc3f7;
+  --text: #e8f0f7;
+  --muted: #6a7d90;
+  --dim: #354354;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-body); min-height: 100vh; overflow-x: hidden; }
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: linear-gradient(rgba(0,255,180,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(0,255,180,0.03) 1px,transparent 1px);
+  background-size: 40px 40px; pointer-events: none; z-index: 0;
+}
 
-# Connect to Oracle DB
-connection = oracledb.connect(
-    user=config.DB_USER,
-    password=config.DB_PASSWORD,
-    dsn=config.DB_DSN
-)
+/* ═══════════ LOGIN SCREEN ═══════════ */
+#loginScreen {
+  position: fixed; inset: 0; z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  transition: opacity 0.5s ease;
+}
+#loginScreen.hidden { opacity: 0; pointer-events: none; }
 
-cursor = connection.cursor()
+.login-box {
+  width: 100%; max-width: 440px; padding: 0 20px;
+  animation: loginIn 0.6s cubic-bezier(0.25,1,0.5,1);
+}
+@keyframes loginIn { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
 
-# Read and execute insert_sample_data.sql
-with open('SQL/insert_sample_data.sql', 'r') as f:
-    sql_script = f.read()
+.login-logo {
+  font-family: var(--font-display); font-size: 4rem; letter-spacing: 4px;
+  color: var(--accent); text-shadow: 0 0 40px rgba(0,255,180,0.4);
+  text-align: center; line-height: 1; margin-bottom: 6px;
+}
+.login-tagline {
+  font-family: var(--font-mono); font-size: 0.62rem; color: var(--muted);
+  letter-spacing: 4px; text-align: center; text-transform: uppercase; margin-bottom: 48px;
+}
 
-# Split by semicolon and execute each statement
-statements = [stmt.strip() for stmt in sql_script.split(';') if stmt.strip() and not stmt.strip().startswith('--')]
+.login-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 36px;
+  box-shadow: 0 0 60px rgba(0,255,180,0.06);
+}
+.login-label {
+  font-family: var(--font-mono); font-size: 0.62rem; color: var(--muted);
+  letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px; display: block;
+}
+.login-select {
+  width: 100%; background: rgba(0,255,180,0.03); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 14px 16px; color: var(--text);
+  font-family: var(--font-body); font-size: 1rem; outline: none; margin-bottom: 24px;
+  transition: border-color 0.2s, box-shadow 0.2s; cursor: pointer;
+}
+.login-select:focus { border-color: rgba(0,255,180,0.35); box-shadow: 0 0 0 3px rgba(0,255,180,0.06); }
+.login-select option { background: var(--surface); }
 
-for stmt in statements:
-    if stmt:
-        try:
-            cursor.execute(stmt)
-            print(f"Executed: {stmt[:50]}...")
-        except Exception as e:
-            print(f"Error executing: {stmt[:50]}... Error: {e}")
+.login-divider {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 24px;
+}
+.login-divider::before, .login-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border2);
+}
+.login-divider span { font-family: var(--font-mono); font-size: 0.6rem; color: var(--dim); }
 
-connection.commit()
-cursor.close()
-connection.close()
+.coach-btn {
+  width: 100%; padding: 14px; border: 1px solid rgba(79,195,247,0.25);
+  border-radius: var(--radius-sm); background: rgba(79,195,247,0.05);
+  color: var(--coach); font-family: var(--font-mono); font-size: 0.75rem;
+  letter-spacing: 2px; cursor: pointer; transition: all 0.2s; margin-bottom: 24px;
+}
+.coach-btn:hover { background: rgba(79,195,247,0.12); box-shadow: 0 0 16px rgba(79,195,247,0.1); }
 
-print("Sample data inserted successfully!")
+.login-enter-btn {
+  width: 100%; padding: 16px; border: none; border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(0,255,180,0.2), rgba(0,255,180,0.08));
+  border: 1px solid rgba(0,255,180,0.3); color: var(--accent);
+  font-family: var(--font-display); font-size: 1.4rem; letter-spacing: 3px;
+  cursor: pointer; transition: all 0.2s;
+}
+.login-enter-btn:hover { background: rgba(0,255,180,0.2); box-shadow: 0 0 24px rgba(0,255,180,0.15); }
+.login-enter-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ═══════════ APP SHELL ═══════════ */
+.app-shell { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 220px; min-height: 100vh; background: var(--surface);
+  border-right: 1px solid var(--border2); display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto; z-index: 100; flex-shrink: 0;
+}
+.sidebar-logo { padding: 24px 20px 18px; border-bottom: 1px solid var(--border2); }
+.logo-text { font-family: var(--font-display); font-size: 2rem; letter-spacing: 2px; color: var(--accent); line-height: 1; text-shadow: 0 0 30px rgba(0,255,180,0.5); }
+.logo-sub { font-family: var(--font-mono); font-size: 0.58rem; color: var(--muted); letter-spacing: 3px; text-transform: uppercase; margin-top: 2px; }
+
+/* Session pill */
+.session-pill {
+  margin: 12px 12px 0; padding: 10px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border2); display: flex; align-items: center; gap: 8px;
+}
+.session-pill.coach-mode { border-color: rgba(79,195,247,0.2); background: rgba(79,195,247,0.04); }
+.session-pill.user-mode { border-color: rgba(0,255,180,0.15); background: rgba(0,255,180,0.04); }
+.session-name { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session-role { font-family: var(--font-mono); font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase; }
+.session-role.coach { color: var(--coach); }
+.session-role.user { color: var(--accent); }
+.logout-btn {
+  background: none; border: none; color: var(--dim); cursor: pointer;
+  font-size: 0.9rem; padding: 2px; transition: color 0.2s; line-height: 1;
+}
+.logout-btn:hover { color: var(--accent2); }
+
+.nav-section { padding: 10px 12px; flex: 1; }
+.nav-label { font-family: var(--font-mono); font-size: 0.58rem; color: var(--dim); letter-spacing: 3px; text-transform: uppercase; padding: 0 8px; margin-bottom: 4px; margin-top: 12px; }
+.nav-label:first-child { margin-top: 4px; }
+.nav-btn {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px;
+  border: none; border-radius: var(--radius-sm); background: transparent; color: var(--muted);
+  font-family: var(--font-body); font-size: 0.85rem; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; text-align: left;
+}
+.nav-btn:hover { background: rgba(0,255,180,0.06); color: var(--text); }
+.nav-btn.active { background: rgba(0,255,180,0.1); color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.nav-btn.coach-tab.active { background: rgba(79,195,247,0.08); color: var(--coach); box-shadow: inset 3px 0 0 var(--coach); }
+.nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+.sidebar-footer { padding: 14px 20px; border-top: 1px solid var(--border2); }
+.status-dot { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+
+/* MAIN */
+.main { flex: 1; overflow: hidden; min-width: 0; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 32px; border-bottom: 1px solid var(--border2);
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(8,11,16,0.95); backdrop-filter: blur(12px);
+}
+.topbar-left { display: flex; align-items: center; gap: 14px; }
+.page-title { font-family: var(--font-display); font-size: 1.8rem; letter-spacing: 2px; }
+.coach-badge {
+  padding: 4px 10px; border-radius: 100px; font-family: var(--font-mono); font-size: 0.58rem;
+  letter-spacing: 2px; background: rgba(79,195,247,0.1); color: var(--coach);
+  border: 1px solid rgba(79,195,247,0.2); display: none;
+}
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+.add-btn {
+  display: flex; align-items: center; gap: 6px; padding: 8px 18px;
+  border: 1px solid rgba(0,255,180,0.35); border-radius: 100px;
+  background: rgba(0,255,180,0.08); color: var(--accent);
+  font-family: var(--font-mono); font-size: 0.68rem; cursor: pointer;
+  transition: all 0.2s; letter-spacing: 1px;
+}
+.add-btn:hover { background: rgba(0,255,180,0.18); box-shadow: 0 0 12px rgba(0,255,180,0.15); }
+.add-btn.hidden { display: none; }
+.refresh-btn {
+  display: flex; align-items: center; gap: 6px; padding: 8px 16px;
+  border: 1px solid var(--border); border-radius: 100px;
+  background: transparent; color: var(--accent);
+  font-family: var(--font-mono); font-size: 0.68rem; cursor: pointer; transition: all 0.2s;
+}
+.refresh-btn:hover { background: rgba(0,255,180,0.1); }
+.refresh-btn.loading .ri { display: inline-block; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.content-area { padding: 24px 32px; }
+
+/* TABS */
+.tab-panel { display: none; animation: fadeIn 0.3s ease; }
+.tab-panel.active { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
+
+/* GRIDS */
+.grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 16px; }
+
+/* CARDS */
+.card {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 20px;
+  position: relative; transition: border-color 0.2s; overflow: hidden;
+}
+.card:hover { border-color: var(--border); }
+.card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(0,255,180,0.3),transparent); opacity:0; transition:opacity 0.3s; }
+.card:hover::before { opacity:1; }
+.card-label { font-family:var(--font-mono); font-size:0.62rem; color:var(--muted); letter-spacing:3px; text-transform:uppercase; margin-bottom:8px; }
+.card-value { font-family:var(--font-display); font-size:2.4rem; color:var(--text); line-height:1; }
+.card-value.accent { color:var(--accent); text-shadow:0 0 20px rgba(0,255,180,0.4); }
+.card-value.pink { color:var(--accent2); }
+.card-value.purple { color:var(--accent3); }
+.card-value.orange { color:var(--accent4); }
+.card-value.blue { color:var(--coach); }
+.card-sub { font-size:0.75rem; color:var(--muted); margin-top:4px; }
+.card-icon { position:absolute; top:16px; right:16px; font-size:1.6rem; opacity:0.3; }
+
+/* USER CARDS */
+.user-card { background:var(--card); border:1px solid var(--border2); border-radius:var(--radius); padding:24px; transition:all 0.25s; position:relative; overflow:hidden; }
+.user-card:hover { border-color:rgba(0,255,180,0.25); transform:translateY(-2px); }
+.user-avatar { width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,var(--accent3),var(--accent)); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:1.3rem; color:var(--bg); margin-bottom:14px; }
+.user-name { font-family:var(--font-display); font-size:1.4rem; letter-spacing:1px; margin-bottom:2px; }
+.user-meta { font-size:0.75rem; color:var(--muted); margin-bottom:14px; }
+.fitness-badge { display:inline-block; padding:3px 10px; border-radius:100px; font-family:var(--font-mono); font-size:0.62rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:16px; }
+.badge-beginner { background:rgba(0,255,180,0.1); color:var(--accent); border:1px solid rgba(0,255,180,0.2); }
+.badge-intermediate { background:rgba(255,165,0,0.1); color:var(--accent4); border:1px solid rgba(255,165,0,0.2); }
+.badge-advanced { background:rgba(255,58,110,0.1); color:var(--accent2); border:1px solid rgba(255,58,110,0.2); }
+.user-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.u-stat { text-align:center; }
+.u-stat-v { font-family:var(--font-mono); font-size:1rem; font-weight:700; }
+.u-stat-l { font-size:0.62rem; color:var(--muted); margin-top:2px; }
+
+/* PROFILE CARD (user view hero) */
+.profile-hero {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 28px 32px; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 24px;
+  position: relative; overflow: hidden;
+}
+.profile-hero::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent3),var(--accent)); }
+.profile-avatar-lg { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,var(--accent3),var(--accent)); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:2rem; color:var(--bg); flex-shrink:0; }
+.profile-info { flex:1; }
+.profile-name { font-family:var(--font-display); font-size:2.2rem; letter-spacing:2px; }
+.profile-meta { font-size:0.8rem; color:var(--muted); margin-top:4px; }
+
+/* WEATHER */
+.weather-card { background:var(--card); border:1px solid var(--border2); border-radius:var(--radius); padding:24px; display:flex; align-items:center; gap:20px; transition:all 0.25s; }
+.weather-card:hover { border-color:rgba(0,255,180,0.25); }
+.weather-icon { font-size:3rem; }
+.weather-city { font-family:var(--font-display); font-size:1.4rem; letter-spacing:1px; }
+.weather-temp { font-family:var(--font-display); font-size:2.2rem; color:var(--accent4); line-height:1; }
+.weather-cond { font-size:0.8rem; color:var(--muted); margin-top:4px; }
+.weather-hum { font-family:var(--font-mono); font-size:0.7rem; color:var(--muted); margin-top:6px; }
+
+/* TABLES */
+.table-wrap { background:var(--card); border:1px solid var(--border2); border-radius:var(--radius); overflow:hidden; }
+table { width:100%; border-collapse:collapse; }
+thead { background:rgba(0,255,180,0.04); }
+th { font-family:var(--font-mono); font-size:0.62rem; color:var(--muted); letter-spacing:2px; text-transform:uppercase; padding:14px 16px; text-align:left; border-bottom:1px solid var(--border2); }
+td { padding:12px 16px; font-size:0.85rem; border-bottom:1px solid var(--border2); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(0,255,180,0.02); }
+.td-mono { font-family:var(--font-mono); font-size:0.8rem; }
+.td-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-family:var(--font-mono); font-size:0.65rem; letter-spacing:1px; }
+.bg { background:rgba(0,255,180,0.12); color:var(--accent); }
+.br { background:rgba(255,58,110,0.12); color:var(--accent2); }
+.bo { background:rgba(255,165,0,0.12); color:var(--accent4); }
+.bp { background:rgba(123,94,167,0.12); color:var(--accent3); }
+.bb { background:rgba(0,150,255,0.12); color:#4fc3f7; }
+
+/* GOALS */
+.goal-card { background:var(--card); border:1px solid var(--border2); border-radius:var(--radius); padding:20px 24px; transition:border-color 0.25s; }
+.goal-card:hover { border-color:var(--border); }
+.goal-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
+.goal-type { font-family:var(--font-display); font-size:1.1rem; letter-spacing:1px; }
+.goal-user { font-size:0.75rem; color:var(--muted); margin-top:2px; }
+.goal-pct { font-family:var(--font-mono); font-size:1.4rem; font-weight:700; color:var(--accent); }
+.progress-bar { height:6px; background:var(--dim); border-radius:3px; overflow:hidden; margin-bottom:10px; }
+.progress-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--accent3),var(--accent)); box-shadow:0 0 8px rgba(0,255,180,0.4); transition:width 1s cubic-bezier(0.25,1,0.5,1); }
+.goal-dates { display:flex; justify-content:space-between; font-size:0.7rem; color:var(--muted); font-family:var(--font-mono); }
+
+/* RECS */
+.rec-card { background:var(--card); border:1px solid var(--border2); border-radius:var(--radius); padding:22px 24px; position:relative; overflow:hidden; transition:border-color 0.25s; }
+.rec-card:hover { border-color:rgba(0,255,180,0.2); }
+.rec-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(180deg,var(--accent),var(--accent3)); }
+.rec-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.rec-user { font-family:var(--font-display); font-size:1.1rem; letter-spacing:1px; }
+.rec-date { font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); }
+.rec-msg { font-size:0.85rem; line-height:1.7; color:rgba(232,240,247,0.85); }
+.rec-tag { display:inline-flex; align-items:center; gap:4px; margin-top:12px; padding:3px 8px; border-radius:4px; background:rgba(123,94,167,0.12); color:var(--accent3); font-family:var(--font-mono); font-size:0.6rem; letter-spacing:2px; }
+
+/* ANALYTICS */
+.view-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+.query-btn { padding:8px 16px; border:1px solid var(--border); border-radius:100px; background:transparent; color:var(--muted); font-family:var(--font-mono); font-size:0.65rem; cursor:pointer; transition:all 0.2s; letter-spacing:1px; text-transform:uppercase; }
+.query-btn:hover { border-color:var(--accent); color:var(--accent); }
+.query-btn.active { background:rgba(0,255,180,0.1); color:var(--accent); border-color:rgba(0,255,180,0.3); }
+
+/* LOADER / EMPTY */
+.loading-state { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; gap:12px; }
+.loader { width:32px; height:32px; border:2px solid var(--dim); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
+.loading-text { font-family:var(--font-mono); font-size:0.7rem; color:var(--muted); letter-spacing:3px; }
+.empty-state { text-align:center; padding:60px 20px; }
+.empty-icon { font-size:3rem; opacity:0.3; margin-bottom:10px; }
+.empty-text { font-family:var(--font-mono); font-size:0.75rem; color:var(--muted); }
+.error-banner { background:rgba(255,58,110,0.1); border:1px solid rgba(255,58,110,0.2); border-radius:var(--radius-sm); padding:12px 16px; font-family:var(--font-mono); font-size:0.75rem; color:var(--accent2); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+
+/* DASHBOARD */
+.dash-highlight { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-top:16px; }
+.big-card { background:var(--card); border:1px solid var(--border2); border-radius:var(--radius); padding:24px; overflow:hidden; }
+.big-card-title { font-family:var(--font-display); font-size:1.1rem; letter-spacing:2px; margin-bottom:16px; color:var(--muted); }
+
+/* SECTION TITLE */
+.section-title { font-family:var(--font-display); font-size:1.3rem; letter-spacing:2px; }
+
+/* ═══════════ MODALS ═══════════ */
+.modal-backdrop {
+  position:fixed; inset:0; z-index:1000;
+  background:rgba(4,7,11,0.85); backdrop-filter:blur(6px);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+  opacity:0; pointer-events:none; transition:opacity 0.25s ease;
+}
+.modal-backdrop.open { opacity:1; pointer-events:all; }
+.modal {
+  background:var(--surface); border:1px solid rgba(0,255,180,0.18);
+  border-radius:16px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto;
+  box-shadow:0 0 60px rgba(0,255,180,0.08),0 24px 60px rgba(0,0,0,0.6);
+  transform:translateY(20px); transition:transform 0.25s ease;
+}
+.modal-backdrop.open .modal { transform:translateY(0); }
+.modal-header { display:flex; align-items:center; justify-content:space-between; padding:24px 28px 18px; border-bottom:1px solid var(--border2); }
+.modal-title { font-family:var(--font-display); font-size:1.5rem; letter-spacing:2px; color:var(--accent); }
+.modal-close { width:32px; height:32px; border-radius:50%; border:1px solid var(--border2); background:transparent; color:var(--muted); font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+.modal-close:hover { border-color:var(--accent2); color:var(--accent2); }
+.modal-body { padding:24px 28px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-row.full { grid-template-columns:1fr; }
+.form-group { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+.form-label { font-family:var(--font-mono); font-size:0.6rem; color:var(--muted); letter-spacing:3px; text-transform:uppercase; }
+.form-input, .form-select, .form-textarea { background:rgba(0,255,180,0.03); border:1px solid var(--border2); border-radius:var(--radius-sm); padding:10px 14px; color:var(--text); font-family:var(--font-body); font-size:0.9rem; outline:none; transition:border-color 0.2s,box-shadow 0.2s; width:100%; }
+.form-input:focus,.form-select:focus,.form-textarea:focus { border-color:rgba(0,255,180,0.35); box-shadow:0 0 0 3px rgba(0,255,180,0.06); }
+.form-input::placeholder { color:var(--dim); }
+.form-select option { background:var(--surface); color:var(--text); }
+.form-textarea { resize:vertical; min-height:90px; }
+.form-hint { font-family:var(--font-mono); font-size:0.6rem; color:var(--dim); margin-top:-8px; margin-bottom:8px; }
+.modal-footer { padding:0 28px 24px; display:flex; gap:10px; justify-content:flex-end; }
+.btn-cancel { padding:10px 22px; border:1px solid var(--border2); border-radius:100px; background:transparent; color:var(--muted); font-family:var(--font-mono); font-size:0.7rem; cursor:pointer; transition:all 0.2s; letter-spacing:1px; }
+.btn-cancel:hover { border-color:var(--accent2); color:var(--accent2); }
+.btn-submit { padding:10px 28px; border:none; border-radius:100px; background:linear-gradient(135deg,rgba(0,255,180,0.2),rgba(0,255,180,0.1)); border:1px solid rgba(0,255,180,0.35); color:var(--accent); font-family:var(--font-mono); font-size:0.7rem; cursor:pointer; transition:all 0.2s; letter-spacing:1px; }
+.btn-submit:hover { background:rgba(0,255,180,0.25); box-shadow:0 0 16px rgba(0,255,180,0.2); }
+.btn-submit:disabled { opacity:0.5; cursor:not-allowed; }
+
+/* TOAST */
+.toast-container { position:fixed; bottom:28px; right:28px; z-index:2000; display:flex; flex-direction:column; gap:10px; }
+.toast { display:flex; align-items:center; gap:12px; padding:14px 20px; border-radius:var(--radius); font-family:var(--font-mono); font-size:0.72rem; letter-spacing:1px; min-width:280px; max-width:400px; animation:toastIn 0.3s ease; box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+.toast.success { background:rgba(0,255,180,0.1); border:1px solid rgba(0,255,180,0.25); color:var(--accent); }
+.toast.error { background:rgba(255,58,110,0.1); border:1px solid rgba(255,58,110,0.25); color:var(--accent2); }
+@keyframes toastIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--dim); border-radius:3px; }
+
+/* RESPONSIVE */
+@media(max-width:900px) {
+  .sidebar { width:58px; }
+  .logo-sub,.nav-label,.nav-btn span,.sidebar-footer span,.session-pill { display:none; }
+  .logo-text { font-size:1.1rem; letter-spacing:0; }
+  .nav-btn { padding:10px; justify-content:center; }
+  .grid-4 { grid-template-columns:repeat(2,1fr); }
+  .grid-3 { grid-template-columns:repeat(2,1fr); }
+  .content-area { padding:16px; }
+  .topbar { padding:14px 16px; }
+  .dash-highlight { grid-template-columns:1fr; }
+}
+@media(max-width:580px) {
+  .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr; }
+  .grid-auto { grid-template-columns:1fr; }
+  .form-row { grid-template-columns:1fr; }
+  .profile-hero { flex-direction:column; text-align:center; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">FITCORE</div>
+    <div class="login-tagline">Personalized Fitness Intelligence</div>
+    <div class="login-card">
+      <label class="login-label">Who are you?</label>
+      <select class="login-select" id="loginSelect">
+        <option value="">— Select your name —</option>
+      </select>
+      <div class="login-divider"><span>OR</span></div>
+      <button class="coach-btn" onclick="loginAsCoach()">🏆 ENTER AS COACH</button>
+      <button class="login-enter-btn" id="loginEnterBtn" disabled onclick="loginAsUser()">ENTER →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     APP
+═══════════════════════════════════════════════ -->
+<div class="app-shell" id="appShell" style="display:none">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-text">FITCORE</div>
+      <div class="logo-sub">Intelligence</div>
+    </div>
+
+    <!-- Session pill -->
+    <div class="session-pill" id="sessionPill">
+      <div>
+        <div class="session-name" id="sessionName">—</div>
+        <div class="session-role" id="sessionRole">USER</div>
+      </div>
+      <button class="logout-btn" onclick="logout()" title="Switch user">↩</button>
+    </div>
+
+    <div class="nav-section" id="navSection">
+      <!-- filled by JS based on role -->
+    </div>
+    <div class="sidebar-footer">
+      <div class="status-dot"><div class="dot"></div><span>API Live</span></div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="page-title" id="pageTitle">DASHBOARD</div>
+        <div class="coach-badge" id="coachBadge">COACH VIEW</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="add-btn hidden" id="addBtn" onclick="openModal()">+ ADD</button>
+        <button class="refresh-btn" onclick="refreshCurrent()" id="refreshBtn"><span class="ri">↻</span> REFRESH</button>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <div id="errBanner" class="error-banner" style="display:none">⚠ Cannot connect to API. Ensure Flask is running on port 5000.</div>
+
+      <!-- ── USER TABS ── -->
+      <div class="tab-panel" id="tab-my-dashboard"></div>
+      <div class="tab-panel" id="tab-my-workouts"></div>
+      <div class="tab-panel" id="tab-my-meals"></div>
+      <div class="tab-panel" id="tab-my-sleep"></div>
+      <div class="tab-panel" id="tab-my-goals"></div>
+      <div class="tab-panel" id="tab-my-recs"></div>
+
+      <!-- ── COACH TABS ── -->
+      <div class="tab-panel" id="tab-coach-dashboard"></div>
+      <div class="tab-panel" id="tab-coach-users"></div>
+      <div class="tab-panel" id="tab-coach-weather"></div>
+      <div class="tab-panel" id="tab-coach-workouts"></div>
+      <div class="tab-panel" id="tab-coach-meals"></div>
+      <div class="tab-panel" id="tab-coach-sleep"></div>
+      <div class="tab-panel" id="tab-coach-goals"></div>
+      <div class="tab-panel" id="tab-coach-recs"></div>
+      <div class="tab-panel" id="tab-coach-views">
+        <div class="view-tabs" id="viewTabs">
+          <button class="query-btn active" onclick="loadView('weekly',this)">Weekly Summary</button>
+          <button class="query-btn" onclick="loadView('calories',this)">Calories / Workout</button>
+          <button class="query-btn" onclick="loadView('sleep',this)">Sleep Quality</button>
+          <button class="query-btn" onclick="loadView('nutrition',this)">Nutrition</button>
+        </div>
+        <div class="table-wrap" id="viewsTable"><div class="loading-state"><div class="loader"></div></div></div>
+      </div>
+      <div class="tab-panel" id="tab-coach-queries">
+        <div class="view-tabs" id="queryTabs">
+          <button class="query-btn active" onclick="loadQuery('top',this)">Top Performers</button>
+          <button class="query-btn" onclick="loadQuery('missed',this)">Missed Workouts</button>
+          <button class="query-btn" onclick="loadQuery('nutrition',this)">Nutrition Status</button>
+          <button class="query-btn" onclick="loadQuery('popular',this)">Popular Workouts</button>
+          <button class="query-btn" onclick="loadQuery('sleep',this)">Sleep Ranking</button>
+          <button class="query-btn" onclick="loadQuery('balance',this)">Calorie Balance</button>
+        </div>
+        <div class="table-wrap" id="queriesTable"><div class="loading-state"><div class="loader"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════════ -->
+
+<!-- WORKOUT MODAL -->
+<div class="modal-backdrop" id="modal-workouts">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">LOG WORKOUT</div><button class="modal-close" onclick="closeModal('modal-workouts')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group" id="fgWorkoutUser" style="display:none">
+          <label class="form-label">For User *</label>
+          <select class="form-select" id="wo-user_id"><option value="">Select user</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Workout Type *</label>
+          <select class="form-select" id="wo-workout_type">
+            <option value="">Select</option>
+            <option>Running</option><option>Cycling</option><option>Swimming</option>
+            <option>Yoga</option><option>Strength Training</option><option>Cardio</option>
+            <option>HIIT</option><option>Walking</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input class="form-input" id="wo-workout_date" type="date">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Duration (minutes) *</label>
+          <input class="form-input" id="wo-duration_minutes" type="number" placeholder="45">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Calories Burned *</label>
+          <input class="form-input" id="wo-calories_burned" type="number" placeholder="320">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-workouts')">CANCEL</button>
+      <button class="btn-submit" id="btnWorkout" onclick="submitForm('workouts')">LOG WORKOUT</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEAL MODAL -->
+<div class="modal-backdrop" id="modal-meals">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">LOG MEAL</div><button class="modal-close" onclick="closeModal('modal-meals')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group" id="fgMealUser" style="display:none">
+          <label class="form-label">For User *</label>
+          <select class="form-select" id="m-user_id"><option value="">Select user</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Meal Type *</label>
+          <select class="form-select" id="m-meal_type">
+            <option value="">Select</option>
+            <option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input class="form-input" id="m-meal_date" type="date">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Calories *</label>
+          <input class="form-input" id="m-calories" type="number" placeholder="650">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Protein (g)</label>
+          <input class="form-input" id="m-protein" type="number" step="0.1" placeholder="40">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Carbs (g)</label>
+          <input class="form-input" id="m-carbs" type="number" step="0.1" placeholder="80">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fats (g)</label>
+          <input class="form-input" id="m-fats" type="number" step="0.1" placeholder="20">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-meals')">CANCEL</button>
+      <button class="btn-submit" id="btnMeal" onclick="submitForm('meals')">LOG MEAL</button>
+    </div>
+  </div>
+</div>
+
+<!-- SLEEP MODAL -->
+<div class="modal-backdrop" id="modal-sleep">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">LOG SLEEP</div><button class="modal-close" onclick="closeModal('modal-sleep')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group" id="fgSleepUser" style="display:none">
+          <label class="form-label">For User *</label>
+          <select class="form-select" id="s-user_id"><option value="">Select user</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sleep Hours *</label>
+          <input class="form-input" id="s-sleep_hours" type="number" step="0.5" min="0" max="24" placeholder="7.5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input class="form-input" id="s-sleep_date" type="date">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-sleep')">CANCEL</button>
+      <button class="btn-submit" id="btnSleep" onclick="submitForm('sleep')">LOG SLEEP</button>
+    </div>
+  </div>
+</div>
+
+<!-- GOALS MODAL -->
+<div class="modal-backdrop" id="modal-goals">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">SET GOAL</div><button class="modal-close" onclick="closeModal('modal-goals')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group" id="fgGoalUser" style="display:none">
+          <label class="form-label">For User *</label>
+          <select class="form-select" id="g-user_id"><option value="">Select user</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Goal Type *</label>
+          <select class="form-select" id="g-goal_type">
+            <option value="">Select</option>
+            <option>Weight Loss</option><option>Muscle Gain</option><option>Cardio Endurance</option>
+            <option>Flexibility</option><option>Sleep Improvement</option>
+            <option>Calorie Burn</option><option>Step Count</option><option>Custom</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Value *</label>
+          <input class="form-input" id="g-target_value" type="number" step="0.1" placeholder="10">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Start Date *</label>
+          <input class="form-input" id="g-start_date" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Date *</label>
+          <input class="form-input" id="g-end_date" type="date">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-goals')">CANCEL</button>
+      <button class="btn-submit" id="btnGoal" onclick="submitForm('goals')">SET GOAL</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECS MODAL (coach only) -->
+<div class="modal-backdrop" id="modal-recs">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">ADD RECOMMENDATION</div><button class="modal-close" onclick="closeModal('modal-recs')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-label">For User *</label>
+          <select class="form-select" id="r-user_id"><option value="">Select user</option></select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-label">Message *</label>
+          <textarea class="form-textarea" id="r-message" placeholder="e.g. Try adding 30 minutes of cardio three times this week..."></textarea>
+        </div>
+      </div>
+      <p class="form-hint">Date auto-set to today. ID auto-assigned via sequence.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-recs')">CANCEL</button>
+      <button class="btn-submit" onclick="submitForm('recs')">ADD REC</button>
+    </div>
+  </div>
+</div>
+
+<!-- WEATHER MODAL (coach only) -->
+<div class="modal-backdrop" id="modal-weather">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">ADD WEATHER</div><button class="modal-close" onclick="closeModal('modal-weather')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Location *</label>
+          <input class="form-input" id="w-location" type="text" placeholder="Mumbai">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Temperature (°C) *</label>
+          <input class="form-input" id="w-temperature" type="number" step="0.1" placeholder="28.5">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Condition *</label>
+          <select class="form-select" id="w-condition_type">
+            <option value="">Select</option>
+            <option>Clear</option><option>Clouds</option><option>Rain</option>
+            <option>Drizzle</option><option>Thunderstorm</option><option>Snow</option>
+            <option>Mist</option><option>Fog</option><option>Haze</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Humidity (%) *</label>
+          <input class="form-input" id="w-humidity" type="number" min="0" max="100" placeholder="72">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-weather')">CANCEL</button>
+      <button class="btn-submit" onclick="submitForm('weather')">INSERT WEATHER</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD USER MODAL (coach only) -->
+<div class="modal-backdrop" id="modal-users">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">ADD USER</div><button class="modal-close" onclick="closeModal('modal-users')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input class="form-input" id="u-name" type="text" placeholder="Alex Johnson">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Age</label>
+          <input class="form-input" id="u-age" type="number" placeholder="25">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Gender</label>
+          <select class="form-select" id="u-gender">
+            <option value="">Select</option><option>Male</option><option>Female</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fitness Level</label>
+          <select class="form-select" id="u-fitness_level">
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Advanced">Advanced</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Height (cm)</label>
+          <input class="form-input" id="u-height" type="number" placeholder="175">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Weight (kg)</label>
+          <input class="form-input" id="u-weight" type="number" placeholder="70">
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-label">Location</label>
+          <input class="form-input" id="u-location" type="text" placeholder="Mumbai">
+        </div>
+      </div>
+      <p class="form-hint">User ID is auto-assigned.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-users')">CANCEL</button>
+      <button class="btn-submit" onclick="submitForm('users')">ADD USER</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+const API = 'http://localhost:5000/api';
+
+// ── STATE ────────────────────────────────────────────────────
+let session = { role: null, user: null }; // role: 'coach'|'user', user: {user_id, name,...}
+let allUsers = [];
+let currentTab = '';
+const loaded = {};
+
+// ── HELPERS ──────────────────────────────────────────────────
+async function get(path) {
+  try {
+    const r = await fetch(API + path);
+    if (!r.ok) throw new Error(r.status);
+    document.getElementById('errBanner').style.display = 'none';
+    return await r.json();
+  } catch {
+    document.getElementById('errBanner').style.display = 'flex';
+    return null;
+  }
+}
+
+async function post(path, body) {
+  const r = await fetch(API + path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  return r.json();
+}
+
+function v(id) { return document.getElementById(id)?.value?.trim() || ''; }
+function spin(id) { document.getElementById(id).innerHTML = `<div class="loading-state"><div class="loader"></div></div>`; }
+function empty(icon, msg) { return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-text">${msg}</div></div>`; }
+function fmtDate(d) { return d ? String(d).split('T')[0] : '—'; }
+function wIcon(c) { if(!c)return'🌡';const s=c.toLowerCase();if(s.includes('rain')||s.includes('drizzle'))return'🌧';if(s.includes('thunder'))return'⛈';if(s.includes('snow'))return'❄️';if(s.includes('cloud'))return'⛅';if(s.includes('fog')||s.includes('mist')||s.includes('haze'))return'🌫';if(s.includes('clear')||s.includes('sun'))return'☀️';return'🌤'; }
+function wtIcon(t) { if(!t)return'💪';const s=t.toLowerCase();if(s.includes('run')||s.includes('cardio'))return'🏃';if(s.includes('yoga'))return'🧘';if(s.includes('swim'))return'🏊';if(s.includes('cycl')||s.includes('bike'))return'🚴';if(s.includes('strength')||s.includes('weight'))return'🏋️';return'💪'; }
+function sleepQ(h) { if(h>=7)return'<span class="td-badge bg">GOOD</span>';if(h>=6)return'<span class="td-badge bo">FAIR</span>';return'<span class="td-badge br">LOW</span>'; }
+function mBadge(t) { const s=(t||'').toLowerCase();const m={breakfast:'bb',lunch:'bg',dinner:'bp',snack:'bo'};return`<span class="td-badge ${m[s]||'bb'}">${(t||'').toUpperCase()}</span>`; }
+
+function showToast(msg, type='success') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${type==='success'?'✓':'✕'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.cssText='opacity:0;transform:translateX(20px);transition:0.3s'; setTimeout(()=>t.remove(),300); }, 3500);
+}
+
+// ── LOGIN ────────────────────────────────────────────────────
+async function initLogin() {
+  allUsers = await get('/users') || [];
+  const sel = document.getElementById('loginSelect');
+  allUsers.forEach(u => {
+    const o = document.createElement('option');
+    o.value = u.user_id;
+    o.textContent = u.name;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('change', () => {
+    document.getElementById('loginEnterBtn').disabled = !sel.value;
+  });
+}
+
+function loginAsUser() {
+  const sel = document.getElementById('loginSelect');
+  const uid = parseInt(sel.value);
+  const user = allUsers.find(u => u.user_id === uid);
+  if (!user) return;
+  session = { role: 'user', user };
+  launchApp();
+}
+
+function loginAsCoach() {
+  session = { role: 'coach', user: null };
+  launchApp();
+}
+
+function logout() {
+  session = { role: null, user: null };
+  Object.keys(loaded).forEach(k => delete loaded[k]);
+  document.getElementById('appShell').style.display = 'none';
+  const ls = document.getElementById('loginScreen');
+  ls.style.display = 'flex';   // restore display before fade-in
+  ls.style.opacity = '0';
+  ls.classList.remove('hidden');
+  requestAnimationFrame(() => { ls.style.opacity = '1'; });
+  document.getElementById('loginSelect').value = '';
+  document.getElementById('loginEnterBtn').disabled = true;
+}
+
+// ── LAUNCH ───────────────────────────────────────────────────
+function launchApp() {
+  // Hide login
+  const loginEl = document.getElementById('loginScreen');
+  loginEl.classList.add('hidden');
+  setTimeout(() => { loginEl.style.display = 'none'; }, 500);
+  document.getElementById('appShell').style.display = 'flex';
+
+  // Session pill
+  const pill = document.getElementById('sessionPill');
+  const nameEl = document.getElementById('sessionName');
+  const roleEl = document.getElementById('sessionRole');
+  if (session.role === 'coach') {
+    pill.className = 'session-pill coach-mode';
+    nameEl.textContent = 'Coach';
+    roleEl.textContent = 'COACH';
+    roleEl.className = 'session-role coach';
+    document.getElementById('coachBadge').style.display = 'block';
+  } else {
+    pill.className = 'session-pill user-mode';
+    nameEl.textContent = session.user.name;
+    roleEl.textContent = 'USER';
+    roleEl.className = 'session-role user';
+    document.getElementById('coachBadge').style.display = 'none';
+  }
+
+  buildNav();
+  populateUserDropdowns();
+
+  // Show first tab
+  const firstTab = session.role === 'coach' ? 'coach-dashboard' : 'my-dashboard';
+  showTab(firstTab, document.querySelector('.nav-btn'));
+}
+
+// ── NAV ──────────────────────────────────────────────────────
+const userNav = [
+  { label:'My Overview', items:[
+    { id:'my-dashboard', icon:'⚡', text:'Dashboard' },
+    { id:'my-workouts',  icon:'💪', text:'My Workouts' },
+    { id:'my-meals',     icon:'🥗', text:'My Meals' },
+    { id:'my-sleep',     icon:'🌙', text:'My Sleep' },
+    { id:'my-goals',     icon:'🎯', text:'My Goals' },
+    { id:'my-recs',      icon:'🤖', text:'Recommendations' },
+  ]}
+];
+const coachNav = [
+  { label:'Overview', items:[
+    { id:'coach-dashboard', icon:'⚡', text:'Dashboard', coach:true },
+    { id:'coach-users',     icon:'👥', text:'All Users', coach:true },
+    { id:'coach-weather',   icon:'🌡', text:'Weather', coach:true },
+  ]},
+  { label:'Activity', items:[
+    { id:'coach-workouts', icon:'💪', text:'Workouts', coach:true },
+    { id:'coach-meals',    icon:'🥗', text:'Meals', coach:true },
+    { id:'coach-sleep',    icon:'🌙', text:'Sleep', coach:true },
+    { id:'coach-goals',    icon:'🎯', text:'Goals', coach:true },
+    { id:'coach-recs',     icon:'🤖', text:'AI Recs', coach:true },
+  ]},
+  { label:'Intelligence', items:[
+    { id:'coach-views',   icon:'📊', text:'Analytics', coach:true },
+    { id:'coach-queries', icon:'🔍', text:'Queries', coach:true },
+  ]},
+];
+
+const addableTabs = {
+  'my-workouts': 'workouts', 'my-meals': 'meals', 'my-sleep': 'sleep', 'my-goals': 'goals',
+  'coach-workouts':'workouts','coach-meals':'meals','coach-sleep':'sleep','coach-goals':'goals',
+  'coach-recs':'recs','coach-weather':'weather','coach-users':'users'
+};
+const addBtnLabels = {
+  workouts:'+ LOG WORKOUT', meals:'+ LOG MEAL', sleep:'+ LOG SLEEP',
+  goals:'+ SET GOAL', recs:'+ ADD REC', weather:'+ ADD WEATHER', users:'+ ADD USER'
+};
+
+function buildNav() {
+  const nav = session.role === 'coach' ? coachNav : userNav;
+  const el = document.getElementById('navSection');
+  el.innerHTML = '';
+  nav.forEach(section => {
+    const lbl = document.createElement('div');
+    lbl.className = 'nav-label';
+    lbl.textContent = section.label;
+    el.appendChild(lbl);
+    section.items.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'nav-btn' + (item.coach ? ' coach-tab' : '');
+      btn.id = 'nav-' + item.id;
+      btn.innerHTML = `<span class="nav-icon">${item.icon}</span><span>${item.text}</span>`;
+      btn.onclick = () => showTab(item.id, btn);
+      el.appendChild(btn);
+    });
+  });
+}
+
+function showTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('tab-' + tab);
+  if (panel) panel.classList.add('active');
+  if (btn) btn.classList.add('active');
+
+  const titles = {
+    'my-dashboard':'My Dashboard','my-workouts':'My Workouts','my-meals':'My Meals',
+    'my-sleep':'My Sleep','my-goals':'My Goals','my-recs':'Recommendations',
+    'coach-dashboard':'Coach Dashboard','coach-users':'All Users','coach-weather':'Weather',
+    'coach-workouts':'All Workouts','coach-meals':'All Meals','coach-sleep':'All Sleep',
+    'coach-goals':'All Goals','coach-recs':'AI Recs','coach-views':'Analytics','coach-queries':'Queries'
+  };
+  document.getElementById('pageTitle').textContent = (titles[tab]||tab).toUpperCase();
+  currentTab = tab;
+
+  // Add button
+  const addBtn = document.getElementById('addBtn');
+  const modalKey = addableTabs[tab];
+  if (modalKey) {
+    addBtn.classList.remove('hidden');
+    addBtn.textContent = addBtnLabels[modalKey] || '+ ADD';
+  } else {
+    addBtn.classList.add('hidden');
+  }
+
+  if (!loaded[tab]) { loadTab(tab); loaded[tab] = true; }
+}
+
+function refreshCurrent() {
+  loaded[currentTab] = false;
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('loading');
+  setTimeout(() => btn.classList.remove('loading'), 1200);
+  loadTab(currentTab);
+  loaded[currentTab] = true;
+}
+
+// ── USER DROPDOWNS IN MODALS ─────────────────────────────────
+function populateUserDropdowns() {
+  const selects = ['wo-user_id','m-user_id','s-user_id','g-user_id','r-user_id'];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '<option value="">Select user</option>';
+    allUsers.forEach(u => {
+      const o = document.createElement('option');
+      o.value = u.user_id;
+      o.textContent = u.name;
+      el.appendChild(o);
+    });
+  });
+}
+
+// Show/hide user picker in modals based on role
+function openModal() {
+  const modalKey = addableTabs[currentTab];
+  if (!modalKey) return;
+  const isCoach = session.role === 'coach';
+
+  // Toggle user fields visibility
+  const userFields = {
+    workouts: 'fgWorkoutUser', meals: 'fgMealUser',
+    sleep: 'fgSleepUser', goals: 'fgGoalUser'
+  };
+  if (userFields[modalKey]) {
+    document.getElementById(userFields[modalKey]).style.display = isCoach ? 'block' : 'none';
+  }
+
+  // Pre-fill today's date
+  const today = new Date().toISOString().split('T')[0];
+  const dateFlds = { workouts:'wo-workout_date', meals:'m-meal_date', sleep:'s-sleep_date' };
+  if (dateFlds[modalKey]) document.getElementById(dateFlds[modalKey]).value = today;
+
+  document.getElementById('modal-' + modalKey).classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if(e.target===b)b.classList.remove('open'); }));
+document.addEventListener('keydown', e => { if(e.key==='Escape')document.querySelectorAll('.modal-backdrop.open').forEach(m=>m.classList.remove('open')); });
+
+// ── FORM SUBMIT ──────────────────────────────────────────────
+async function submitForm(type) {
+  let payload = {};
+  let endpoint = '';
+  const isCoach = session.role === 'coach';
+  const uid = session.user?.user_id;
+
+  // Get next IDs automatically
+  if (['workouts','meals','sleep','goals'].includes(type)) {
+    const nid = await get('/next-id/' + type);
+    if (!nid) { showToast('Failed to get next ID','error'); return; }
+
+    if (type === 'workouts') {
+      const userId = isCoach ? v('wo-user_id') : uid;
+      if (!userId || !v('wo-workout_type') || !v('wo-duration_minutes') || !v('wo-calories_burned') || !v('wo-workout_date')) { showToast('Fill all required fields','error'); return; }
+      payload = { workout_id: nid.next_id, user_id: userId, workout_type: v('wo-workout_type'), duration_minutes: v('wo-duration_minutes'), calories_burned: v('wo-calories_burned'), workout_date: v('wo-workout_date') };
+      endpoint = '/workouts';
+    } else if (type === 'meals') {
+      const userId = isCoach ? v('m-user_id') : uid;
+      if (!userId || !v('m-meal_type') || !v('m-calories') || !v('m-meal_date')) { showToast('Fill all required fields','error'); return; }
+      payload = { meal_id: nid.next_id, user_id: userId, meal_type: v('m-meal_type'), calories: v('m-calories'), protein: v('m-protein'), carbs: v('m-carbs'), fats: v('m-fats'), meal_date: v('m-meal_date') };
+      endpoint = '/meals';
+    } else if (type === 'sleep') {
+      const userId = isCoach ? v('s-user_id') : uid;
+      if (!userId || !v('s-sleep_hours') || !v('s-sleep_date')) { showToast('Fill all required fields','error'); return; }
+      payload = { sleep_id: nid.next_id, user_id: userId, sleep_hours: v('s-sleep_hours'), sleep_date: v('s-sleep_date') };
+      endpoint = '/sleep';
+    } else if (type === 'goals') {
+      const userId = isCoach ? v('g-user_id') : uid;
+      if (!userId || !v('g-goal_type') || !v('g-target_value') || !v('g-start_date') || !v('g-end_date')) { showToast('Fill all required fields','error'); return; }
+      payload = { goal_id: nid.next_id, user_id: userId, goal_type: v('g-goal_type'), target_value: v('g-target_value'), start_date: v('g-start_date'), end_date: v('g-end_date') };
+      endpoint = '/goals';
+    }
+  } else if (type === 'recs') {
+    if (!v('r-user_id') || !v('r-message')) { showToast('Fill all required fields','error'); return; }
+    payload = { user_id: v('r-user_id'), message: v('r-message') };
+    endpoint = '/recommendations';
+  } else if (type === 'weather') {
+    if (!v('w-location') || !v('w-temperature') || !v('w-condition_type') || !v('w-humidity')) { showToast('Fill all required fields','error'); return; }
+    payload = { location: v('w-location'), temperature: v('w-temperature'), condition_type: v('w-condition_type'), humidity: v('w-humidity') };
+    endpoint = '/weather';
+  } else if (type === 'users') {
+    if (!v('u-name')) { showToast('Name is required','error'); return; }
+    const nid = await get('/next-id/users');
+    payload = { user_id: nid.next_id, name: v('u-name'), age: v('u-age'), gender: v('u-gender'), height: v('u-height'), weight: v('u-weight'), fitness_level: v('u-fitness_level'), location: v('u-location') };
+    endpoint = '/users';
+  }
+
+  const modalEl = document.querySelector('.modal-backdrop.open');
+  const btn = modalEl?.querySelector('.btn-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'SAVING...'; }
+
+  try {
+    const data = await post(endpoint, payload);
+    if (data.error) throw new Error(data.error);
+    showToast(data.message || 'Saved!', 'success');
+    closeModal(modalEl?.id || '');
+    clearFormInputs(modalEl);
+    // Refresh relevant tabs
+    loaded[currentTab] = false;
+    loadTab(currentTab);
+    loaded[currentTab] = true;
+    // If user was added, refresh allUsers and dropdowns
+    if (type === 'users') { allUsers = await get('/users') || []; populateUserDropdowns(); }
+  } catch (err) {
+    showToast(err.message || 'Error saving', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'SUBMIT'; }
+  }
+}
+
+function clearFormInputs(modalEl) {
+  if (!modalEl) return;
+  modalEl.querySelectorAll('input').forEach(el => el.value = '');
+  modalEl.querySelectorAll('textarea').forEach(el => el.value = '');
+  modalEl.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+}
+
+// ── LOAD TAB ─────────────────────────────────────────────────
+function loadTab(tab) {
+  const uid = session.user?.user_id;
+  switch(tab) {
+    case 'my-dashboard':    loadMyDashboard(); break;
+    case 'my-workouts':     loadTable('tab-my-workouts',    `/workouts?user_id=${uid}`,  workoutTable); break;
+    case 'my-meals':        loadTable('tab-my-meals',       `/meals?user_id=${uid}`,     mealTable);    break;
+    case 'my-sleep':        loadTable('tab-my-sleep',       `/sleep?user_id=${uid}`,     sleepTable);   break;
+    case 'my-goals':        loadGoalsGrid('tab-my-goals',   `/goals?user_id=${uid}`);    break;
+    case 'my-recs':         loadRecsPanel('tab-my-recs',    `/recommendations?user_id=${uid}`); break;
+    case 'coach-dashboard': loadCoachDashboard(); break;
+    case 'coach-users':     loadUsersGrid('tab-coach-users'); break;
+    case 'coach-weather':   loadWeatherGrid('tab-coach-weather'); break;
+    case 'coach-workouts':  loadTable('tab-coach-workouts', '/workouts',        workoutTable); break;
+    case 'coach-meals':     loadTable('tab-coach-meals',    '/meals',           mealTable);    break;
+    case 'coach-sleep':     loadTable('tab-coach-sleep',    '/sleep',           sleepTable);   break;
+    case 'coach-goals':     loadGoalsGrid('tab-coach-goals', '/goals'); break;
+    case 'coach-recs':      loadRecsPanel('tab-coach-recs', '/recommendations'); break;
+    case 'coach-views':     loadView('weekly', document.querySelector('#viewTabs .query-btn')); break;
+    case 'coach-queries':   loadQuery('top', document.querySelector('#queryTabs .query-btn')); break;
+  }
+}
+
+// ── USER DASHBOARD ───────────────────────────────────────────
+async function loadMyDashboard() {
+  const uid = session.user.user_id;
+  const el = document.getElementById('tab-my-dashboard');
+  el.innerHTML = '<div class="loading-state"><div class="loader"></div></div>';
+  const [user, workouts, meals, sleep, goals, recs, weather] = await Promise.all([
+    get(`/users/${uid}`), get(`/workouts?user_id=${uid}`),
+    get(`/meals?user_id=${uid}`), get(`/sleep?user_id=${uid}`),
+    get(`/goals?user_id=${uid}`), get(`/recommendations?user_id=${uid}`),
+    get('/weather')
+  ]);
+  if (!user) { el.innerHTML = empty('⚠','Failed to load profile'); return; }
+
+  const init = (user.name||'?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  const lvl = (user.fitness_level||'beginner').toLowerCase();
+  const myCity = user.location?.split(',')[0];
+  const cityWeather = weather?.find(w => w.location?.toLowerCase().includes(myCity?.toLowerCase()));
+
+  el.innerHTML = `
+    <div class="profile-hero">
+      <div class="profile-avatar-lg">${init}</div>
+      <div class="profile-info">
+        <div class="profile-name">${user.name}</div>
+        <div class="profile-meta">${user.age}y · ${user.gender} · 📍 ${user.location} · <span class="fitness-badge badge-${lvl}" style="margin:0">${user.fitness_level}</span></div>
+      </div>
+      ${cityWeather ? `<div style="text-align:right;flex-shrink:0"><div style="font-size:2rem">${wIcon(cityWeather.condition_type)}</div><div style="font-family:var(--font-display);font-size:1.6rem;color:var(--accent4)">${parseFloat(cityWeather.temperature).toFixed(1)}°C</div><div style="font-size:0.75rem;color:var(--muted)">${cityWeather.condition_type}</div></div>` : ''}
+    </div>
+    <div class="grid-4" style="margin-bottom:20px">
+      <div class="card"><span class="card-icon">💪</span><div class="card-label">Workouts</div><div class="card-value accent">${user.total_workouts||0}</div><div class="card-sub">Total sessions</div></div>
+      <div class="card"><span class="card-icon">🔥</span><div class="card-label">Calories Burned</div><div class="card-value pink">${(user.total_calories_burned||0).toLocaleString()}</div><div class="card-sub">All time</div></div>
+      <div class="card"><span class="card-icon">🌙</span><div class="card-label">Avg Sleep</div><div class="card-value purple">${parseFloat(user.avg_sleep||0).toFixed(1)}<span style="font-size:1rem">h</span></div><div class="card-sub">Per night</div></div>
+      <div class="card"><span class="card-icon">🎯</span><div class="card-label">Active Goals</div><div class="card-value orange">${goals?.length||0}</div><div class="card-sub">In progress</div></div>
+    </div>
+    <div class="dash-highlight">
+      <div class="big-card">
+        <div class="big-card-title">RECENT WORKOUTS</div>
+        ${workouts?.length ? `<table><thead><tr><th>Type</th><th>Duration</th><th>Calories</th><th>Date</th></tr></thead><tbody>${workouts.slice(0,6).map(w=>`<tr><td>${wtIcon(w.workout_type)} ${w.workout_type}</td><td class="td-mono">${w.duration_minutes}m</td><td class="td-mono" style="color:var(--accent2)">${w.calories_burned}</td><td class="td-mono" style="color:var(--muted)">${fmtDate(w.workout_date)}</td></tr>`).join('')}</tbody></table>` : empty('💪','No workouts yet — log one!')}
+      </div>
+      <div class="big-card">
+        <div class="big-card-title">ACTIVE GOALS</div>
+        ${goals?.length ? goals.slice(0,3).map(g=>{const pct=Math.min(100,Math.max(0,parseFloat(g.progress_pct||0)));return`<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-family:var(--font-display);letter-spacing:1px">${g.goal_type}</span><span style="font-family:var(--font-mono);color:var(--accent)">${pct.toFixed(0)}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div></div>`;}).join('') : empty('🎯','No goals set yet')}
+      </div>
+    </div>
+    ${recs?.length ? `<div style="margin-top:20px"><div class="section-title" style="margin-bottom:14px">COACH RECOMMENDATIONS</div><div style="display:flex;flex-direction:column;gap:10px">${recs.slice(0,3).map(buildRec).join('')}</div></div>` : ''}
+  `;
+}
+
+// ── COACH DASHBOARD ──────────────────────────────────────────
+async function loadCoachDashboard() {
+  const el = document.getElementById('tab-coach-dashboard');
+  el.innerHTML = '<div class="loading-state"><div class="loader"></div></div>';
+  const [users, workouts, weather, recs] = await Promise.all([
+    get('/users'), get('/workouts'), get('/weather'), get('/recommendations')
+  ]);
+  if (!users) { el.innerHTML = empty('⚠','Failed to load data'); return; }
+  const tw = users.reduce((a,u)=>a+(u.total_workouts||0),0);
+  const tc = users.reduce((a,u)=>a+(u.total_calories_burned||0),0);
+  const as = (users.reduce((a,u)=>a+(parseFloat(u.avg_sleep)||0),0)/users.length).toFixed(1);
+
+  el.innerHTML = `
+    <div class="grid-4" style="margin-bottom:20px">
+      <div class="card"><span class="card-icon">👥</span><div class="card-label">Total Members</div><div class="card-value blue">${users.length}</div><div class="card-sub">Active profiles</div></div>
+      <div class="card"><span class="card-icon">💪</span><div class="card-label">Total Workouts</div><div class="card-value accent">${tw}</div><div class="card-sub">All sessions</div></div>
+      <div class="card"><span class="card-icon">🔥</span><div class="card-label">Total Calories</div><div class="card-value pink">${tc.toLocaleString()}</div><div class="card-sub">Combined burned</div></div>
+      <div class="card"><span class="card-icon">🌙</span><div class="card-label">Avg Sleep</div><div class="card-value purple">${as}<span style="font-size:1rem">h</span></div><div class="card-sub">Across all users</div></div>
+    </div>
+    <div class="dash-highlight">
+      <div class="big-card">
+        <div class="big-card-title">LATEST WORKOUTS — ALL MEMBERS</div>
+        ${workouts?.length ? `<table><thead><tr><th>Member</th><th>Type</th><th>Duration</th><th>Calories</th><th>Date</th></tr></thead><tbody>${workouts.slice(0,8).map(w=>`<tr><td style="font-weight:500">${w.name}</td><td>${wtIcon(w.workout_type)} ${w.workout_type}</td><td class="td-mono">${w.duration_minutes}m</td><td class="td-mono" style="color:var(--accent2)">${w.calories_burned}</td><td class="td-mono" style="color:var(--muted)">${fmtDate(w.workout_date)}</td></tr>`).join('')}</tbody></table>` : empty('💪','No workout data')}
+      </div>
+      <div class="big-card">
+        <div class="big-card-title">LIVE WEATHER</div>
+        ${weather?.length ? weather.slice(0,5).map(w=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border2)"><span style="font-size:1.5rem">${wIcon(w.condition_type)}</span><div style="flex:1"><div style="font-size:0.88rem;font-weight:500">${w.location}</div><div style="font-size:0.7rem;color:var(--muted)">${w.condition_type}</div></div><div style="font-family:var(--font-mono);color:var(--accent4)">${parseFloat(w.temperature).toFixed(1)}°C</div></div>`).join('') : empty('🌡','No weather data')}
+      </div>
+    </div>
+    <div style="margin-top:20px">
+      <div class="section-title" style="margin-bottom:14px">MEMBER OVERVIEW</div>
+      <div class="grid-auto">${users.map(u=>{const init=(u.name||'?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();const lvl=(u.fitness_level||'beginner').toLowerCase();return`<div class="user-card"><div class="user-avatar">${init}</div><div class="user-name">${u.name}</div><div class="user-meta">${u.age}y · ${u.gender} · 📍 ${u.location}</div><span class="fitness-badge badge-${lvl}">${u.fitness_level}</span><div class="user-stats"><div class="u-stat"><div class="u-stat-v">${u.total_workouts||0}</div><div class="u-stat-l">Workouts</div></div><div class="u-stat"><div class="u-stat-v">${(u.total_calories_burned||0).toLocaleString()}</div><div class="u-stat-l">Calories</div></div><div class="u-stat"><div class="u-stat-v">${parseFloat(u.avg_sleep||0).toFixed(1)}</div><div class="u-stat-l">Avg Sleep</div></div></div></div>`;}).join('')}</div>
+    </div>
+    ${recs?.length ? `<div style="margin-top:20px"><div class="section-title" style="margin-bottom:14px">RECENT RECOMMENDATIONS</div><div style="display:flex;flex-direction:column;gap:10px">${recs.slice(0,4).map(buildRec).join('')}</div></div>` : ''}
+  `;
+}
+
+// ── GENERIC LOADERS ──────────────────────────────────────────
+async function loadTable(tabId, endpoint, renderFn) {
+  const el = document.getElementById(tabId);
+  el.innerHTML = '<div class="loading-state"><div class="loader"></div></div>';
+  const data = await get(endpoint);
+  el.innerHTML = data?.length ? renderFn(data) : empty('📭','No data found');
+}
+
+async function loadGoalsGrid(tabId, endpoint) {
+  const el = document.getElementById(tabId);
+  el.innerHTML = '<div class="loading-state"><div class="loader"></div></div>';
+  const data = await get(endpoint);
+  if (!data?.length) { el.innerHTML = empty('🎯','No goals set'); return; }
+  el.innerHTML = `<div class="grid-auto">${data.map(g=>{const pct=Math.min(100,Math.max(0,parseFloat(g.progress_pct||0)));return`<div class="goal-card"><div class="goal-header"><div><div class="goal-type">${g.goal_type}</div><div class="goal-user">${g.name||''}</div></div><div class="goal-pct">${pct.toFixed(0)}%</div></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><div class="goal-dates"><span>Target: ${g.target_value}</span><span>${fmtDate(g.end_date)}</span></div></div>`;}).join('')}</div>`;
+}
+
+async function loadRecsPanel(tabId, endpoint) {
+  const el = document.getElementById(tabId);
+  el.innerHTML = '<div class="loading-state"><div class="loader"></div></div>';
+  const data = await get(endpoint);
+  if (!data?.length) { el.innerHTML = empty('🤖','No recommendations yet'); return; }
+  el.innerHTML = `<div style="display:flex;flex-direction:column;gap:12px">${data.map(buildRec).join('')}</div>`;
+}
+
+async function loadUsersGrid(tabId) {
+  const el = document.getElementById(tabId);
+  el.innerHTML = '<div class="loading-state"><div class="loader"></div></div>';
+  const data = allUsers.length ? allUsers : await get('/users');
+  if (!data?.length) { el.innerHTML = empty('👥','No users'); return; }
+  el.innerHTML = `<div class="grid-auto">${data.map(u=>{const init=(u.name||'?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();const lvl=(u.fitness_level||'beginner').toLowerCase();return`<div class="user-card"><div class="user-avatar">${init}</div><div class="user-name">${u.name}</div><div class="user-meta">${u.age}y · ${u.gender} · 📍 ${u.location}</div><span class="fitness-badge badge-${lvl}">${u.fitness_level}</span><div class="user-stats"><div class="u-stat"><div class="u-stat-v">${u.total_workouts||0}</div><div class="u-stat-l">Workouts</div></div><div class="u-stat"><div class="u-stat-v">${(u.total_calories_burned||0).toLocaleString()}</div><div class="u-stat-l">Calories</div></div><div class="u-stat"><div class="u-stat-v">${parseFloat(u.avg_sleep||0).toFixed(1)}</div><div class="u-stat-l">Avg Sleep</div></div></div></div>`;}).join('')}</div>`;
+}
+
+async function loadWeatherGrid(tabId) {
+  const el = document.getElementById(tabId);
+  el.innerHTML = '<div class="loading-state"><div class="loader"></div></div>';
+  const data = await get('/weather');
+  if (!data?.length) { el.innerHTML = empty('🌡','No weather data'); return; }
+  el.innerHTML = `<div class="grid-auto">${data.map(w=>`<div class="weather-card"><div class="weather-icon">${wIcon(w.condition_type)}</div><div><div class="weather-city">${w.location}</div><div class="weather-temp">${parseFloat(w.temperature).toFixed(1)}°C</div><div class="weather-cond">${w.condition_type}</div><div class="weather-hum">💧 ${w.humidity}%</div></div></div>`).join('')}</div>`;
+}
+
+// ── TABLE RENDER FUNCTIONS ───────────────────────────────────
+function workoutTable(data) {
+  const showUser = session.role === 'coach';
+  return `<table><thead><tr>${showUser?'<th>Member</th>':''}<th>Type</th><th>Duration</th><th>Calories</th><th>Date</th></tr></thead><tbody>
+    ${data.map(w=>`<tr>${showUser?`<td style="font-weight:500">${w.name}</td>`:''}<td>${wtIcon(w.workout_type)} ${w.workout_type}</td><td class="td-mono">${w.duration_minutes} min</td><td class="td-mono" style="color:var(--accent2)">${(w.calories_burned||0).toLocaleString()}</td><td class="td-mono" style="color:var(--muted)">${fmtDate(w.workout_date)}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+function mealTable(data) {
+  const showUser = session.role === 'coach';
+  return `<table><thead><tr>${showUser?'<th>Member</th>':''}<th>Type</th><th>Calories</th><th>Protein</th><th>Carbs</th><th>Fats</th><th>Date</th></tr></thead><tbody>
+    ${data.map(m=>`<tr>${showUser?`<td style="font-weight:500">${m.name}</td>`:''}<td>${mBadge(m.meal_type)}</td><td class="td-mono">${m.calories}</td><td class="td-mono" style="color:var(--accent)">${m.protein}g</td><td class="td-mono" style="color:var(--accent4)">${m.carbs}g</td><td class="td-mono" style="color:var(--accent2)">${m.fats}g</td><td class="td-mono" style="color:var(--muted)">${fmtDate(m.meal_date)}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+function sleepTable(data) {
+  const showUser = session.role === 'coach';
+  return `<table><thead><tr>${showUser?'<th>Member</th>':''}<th>Sleep Hours</th><th>Quality</th><th>Date</th></tr></thead><tbody>
+    ${data.map(s=>`<tr>${showUser?`<td style="font-weight:500">${s.name}</td>`:''}<td class="td-mono" style="font-size:1rem">${parseFloat(s.sleep_hours).toFixed(1)} hrs</td><td>${sleepQ(s.sleep_hours)}</td><td class="td-mono" style="color:var(--muted)">${fmtDate(s.sleep_date)}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+function buildRec(r) {
+  return `<div class="rec-card"><div class="rec-header"><div class="rec-user">${r.name}</div><div class="rec-date">${fmtDate(r.recommendation_date)}</div></div><div class="rec-msg">${r.message}</div><div class="rec-tag">🤖 AI GENERATED</div></div>`;
+}
+
+// ── ANALYTICS ────────────────────────────────────────────────
+async function loadView(v, btn) {
+  document.querySelectorAll('#viewTabs .query-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  spin('viewsTable');
+  renderGenericTable('viewsTable', await get('/view/' + v));
+}
+async function loadQuery(q, btn) {
+  document.querySelectorAll('#queryTabs .query-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  spin('queriesTable');
+  renderGenericTable('queriesTable', await get('/query/' + q));
+}
+function renderGenericTable(id, data) {
+  const el = document.getElementById(id);
+  if(!data||!data.length){el.innerHTML=empty('📊','No data');return;}
+  const keys = Object.keys(data[0]);
+  el.innerHTML = `<table><thead><tr>${keys.map(k=>`<th>${k.replace(/_/g,' ')}</th>`).join('')}</tr></thead><tbody>
+    ${data.map(row=>`<tr>${keys.map(k=>{const vl=row[k];return typeof vl==='number'?`<td class="td-mono">${vl.toLocaleString()}</td>`:`<td>${vl??'—'}</td>`;}).join('')}</tr>`).join('')}
+  </tbody></table>`;
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+initLogin();
+</script>
+</body>
+</html>

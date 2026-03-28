@@ -857,7 +857,10 @@ function logout() {
   Object.keys(loaded).forEach(k => delete loaded[k]);
   document.getElementById('appShell').style.display = 'none';
   const ls = document.getElementById('loginScreen');
+  ls.style.display = 'flex';   // restore display before fade-in
+  ls.style.opacity = '0';
   ls.classList.remove('hidden');
+  requestAnimationFrame(() => { ls.style.opacity = '1'; });
   document.getElementById('loginSelect').value = '';
   document.getElementById('loginEnterBtn').disabled = true;
 }
@@ -865,8 +868,9 @@ function logout() {
 // ── LAUNCH ───────────────────────────────────────────────────
 function launchApp() {
   // Hide login
-  document.getElementById('loginScreen').classList.add('hidden');
-  setTimeout(() => document.getElementById('loginScreen').style.display = 'none', 500);
+  const loginEl = document.getElementById('loginScreen');
+  loginEl.classList.add('hidden');
+  setTimeout(() => { loginEl.style.display = 'none'; }, 500);
   document.getElementById('appShell').style.display = 'flex';
 
   // Session pill
