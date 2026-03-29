@@ -1537,20 +1537,7 @@ async function loadAnalyticsTab(defaultView='weekly', btn=null) {
           `).join('') || empty('📈','No weekly activity yet')}
         </div>
       </div>
-      <div class="stack-card">
-        <div class="stack-title">Risk Alerts</div>
-        <div class="stack-list">
-          ${(overview.alerts || []).slice(0,5).map(item => `
-            <div class="stack-item">
-              <div>
-                <div class="stack-item-name">${item.name}</div>
-                <div class="stack-item-sub">${(item.reasons || []).join(' · ')}</div>
-              </div>
-              <div class="stack-item-value">${item.days_since_workout ?? '—'}d gap</div>
-            </div>
-          `).join('') || empty('✅','No major risk alerts right now')}
-        </div>
-      </div>
+
     </div>
     <div class="stack-card">
       <div class="stack-title">Workout Mix</div>

@@ -332,8 +332,8 @@ def build_ai_recommendation(snapshot):
             parts.append(f"You're about {goal_progress:.0f}% through the {goal_type} timeline, so consistency matters more than intensity spikes.")
 
     message = " ".join(parts)
-    if len(message) > 500:
-        message = message[:497].rstrip() + "..."
+    if len(message) > 280:
+        message = message[:277].rstrip() + "..."
 
     return {
         "user_id": snapshot["user_id"],
