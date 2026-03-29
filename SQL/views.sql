@@ -40,8 +40,7 @@ SELECT
     ROUND(AVG(calories_burned), 2)  AS avg_calories_burned,
     SUM(calories_burned)            AS total_calories_burned
 FROM WORKOUTS
-GROUP BY workout_type
-ORDER BY avg_calories_burned DESC;
+GROUP BY workout_type;
 
 -- ============================================
 -- VIEW 3: Sleep Quality Summary
@@ -68,14 +67,31 @@ CREATE OR REPLACE VIEW Nutrition_Summary AS
 SELECT 
     u.user_id,
     u.name,
-    ROUND(AVG(m.calories), 2) AS avg_daily_calories,
-    ROUND(AVG(m.protein), 2)  AS avg_protein,
-    ROUND(AVG(m.carbs), 2)    AS avg_carbs,
-    ROUND(AVG(m.fats), 2)     AS avg_fats,
-    SUM(m.calories)           AS total_calories
+    ROUND(NVL(n.avg_daily_calories, 0), 2) AS avg_daily_calories,
+    ROUND(NVL(n.avg_protein, 0), 2)        AS avg_protein,
+    ROUND(NVL(n.avg_carbs, 0), 2)          AS avg_carbs,
+    ROUND(NVL(n.avg_fats, 0), 2)           AS avg_fats,
+    NVL(n.total_calories, 0)               AS total_calories
 FROM USERS u
-LEFT JOIN MEALS m ON u.user_id = m.user_id
-GROUP BY u.user_id, u.name;
+LEFT JOIN (
+    SELECT user_id,
+           AVG(day_calories) AS avg_daily_calories,
+           AVG(day_protein)  AS avg_protein,
+           AVG(day_carbs)    AS avg_carbs,
+           AVG(day_fats)     AS avg_fats,
+           SUM(day_calories) AS total_calories
+    FROM (
+        SELECT user_id,
+               TRUNC(meal_date) AS meal_day,
+               SUM(calories)    AS day_calories,
+               SUM(protein)     AS day_protein,
+               SUM(carbs)       AS day_carbs,
+               SUM(fats)        AS day_fats
+        FROM MEALS
+        GROUP BY user_id, TRUNC(meal_date)
+    )
+    GROUP BY user_id
+) n ON u.user_id = n.user_id;
 
 -- ============================================
 -- VIEW 5: Latest Weather Per City

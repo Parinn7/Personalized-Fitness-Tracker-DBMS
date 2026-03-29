@@ -33,16 +33,23 @@ ORDER BY days_since_last_workout DESC;
 -- ============================================
 SELECT 
     u.name,
-    ROUND(AVG(m.calories), 2)        AS avg_daily_calories,
-    2000 - ROUND(AVG(m.calories), 2) AS calorie_deficit_surplus,
+    ROUND(NVL(n.avg_daily_calories, 0), 2)        AS avg_daily_calories,
+    2000 - ROUND(NVL(n.avg_daily_calories, 0), 2) AS calorie_deficit_surplus,
     CASE 
-        WHEN AVG(m.calories) < 1500 THEN 'Under Eating'
-        WHEN AVG(m.calories) > 2500 THEN 'Over Eating'
+        WHEN NVL(n.avg_daily_calories, 0) < 1500 THEN 'Under Eating'
+        WHEN NVL(n.avg_daily_calories, 0) > 2500 THEN 'Over Eating'
         ELSE 'On Track'
     END AS nutrition_status
 FROM USERS u
-JOIN MEALS m ON u.user_id = m.user_id
-GROUP BY u.name
+LEFT JOIN (
+    SELECT user_id, AVG(day_calories) AS avg_daily_calories
+    FROM (
+        SELECT user_id, TRUNC(meal_date) AS meal_day, SUM(calories) AS day_calories
+        FROM MEALS
+        GROUP BY user_id, TRUNC(meal_date)
+    )
+    GROUP BY user_id
+) n ON u.user_id = n.user_id
 ORDER BY avg_daily_calories DESC;
 
 -- ============================================
@@ -95,20 +102,29 @@ ORDER BY avg_sleep DESC;
 -- ============================================
 -- QUERY 7: Calories Burned vs Consumed Per User
 -- ============================================
+WITH burned AS (
+    SELECT user_id, SUM(calories_burned) AS total_burned
+    FROM WORKOUTS
+    GROUP BY user_id
+),
+consumed AS (
+    SELECT user_id, SUM(calories) AS total_consumed
+    FROM MEALS
+    GROUP BY user_id
+)
 SELECT 
     u.name,
-    NVL(SUM(w.calories_burned), 0)  AS total_burned,
-    NVL(SUM(m.calories), 0)         AS total_consumed,
-    NVL(SUM(m.calories), 0) - 
-    NVL(SUM(w.calories_burned), 0)  AS net_calorie_balance,
+    NVL(b.total_burned, 0)  AS total_burned,
+    NVL(c.total_consumed, 0) AS total_consumed,
+    NVL(c.total_consumed, 0) - 
+    NVL(b.total_burned, 0)  AS net_calorie_balance,
     CASE 
-        WHEN NVL(SUM(m.calories), 0) - NVL(SUM(w.calories_burned), 0) > 0 
+        WHEN NVL(c.total_consumed, 0) - NVL(b.total_burned, 0) > 0 
             THEN 'Calorie Surplus'
         ELSE 'Calorie Deficit'
     END AS balance_status
 FROM USERS u
-LEFT JOIN WORKOUTS w ON u.user_id = w.user_id
-LEFT JOIN MEALS m    ON u.user_id = m.user_id
-GROUP BY u.name
+LEFT JOIN burned b   ON u.user_id = b.user_id
+LEFT JOIN consumed c ON u.user_id = c.user_id
 ORDER BY net_calorie_balance DESC;
 
